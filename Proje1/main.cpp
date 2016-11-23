@@ -21,13 +21,13 @@ int main()
 
 	video::E_DRIVER_TYPE driverType = video::E_DRIVER_TYPE::EDT_OPENGL;
 	IrrlichtDevice *device =
-		createDevice(driverType, dimension2d<u32>(640, 480), 16,
+		createDevice(driverType, dimension2d<u32>(760, 600), 16,
 			false, false, false, &receiver);
 
 	if (!device)
 		return 1;
 
-	device->setWindowCaption(L"Hello World! - Irrlicht Engine Demo");
+	device->setWindowCaption(L"Ball on Plate - 3D");
 
 	IVideoDriver* driver = device->getVideoDriver();
 	ISceneManager* smgr = device->getSceneManager();
@@ -37,21 +37,21 @@ int main()
 	ILightSceneNode* light1 = smgr->addLightSceneNode(0, core::vector3df(0, 400, -200), video::SColorf(0.3f, 0.0f, 0.0f), 1.0f, 1);
 */
 	/* My Codes */
+	// Create Platform
 	scene::ISceneNode* plateSceneNode = smgr->addCubeSceneNode();
 	if (plateSceneNode) {
-		plateSceneNode->setScale(vector3df(5, 0.1, 5));
+		plateSceneNode->setScale(vector3df(4, 0.01, 4));
 	}
-
+	// Create Ball
 	IAnimatedMesh* ballMesh = smgr->getMesh("Ball/ball.obj");
 	ISceneNode* ballSceneNode = 0;
-
 	if (ballMesh)
 	{
 		//node2 = smgr->addOctreeSceneNode(mesh2->getMesh(0), 0, -1, 1024);
 		ballSceneNode = smgr->addMeshSceneNode(ballMesh->getMesh(0));
 		ballSceneNode->setMaterialFlag(EMF_LIGHTING, false);
-		ballSceneNode->setPosition(core::vector3df(0, 10, 0));
-		ballSceneNode->setScale(vector3df(5, 5, 5));
+		ballSceneNode->setPosition(core::vector3df(0, 5, 0));
+		ballSceneNode->setScale(vector3df(2, 2, 2));
 	}
 
 	smgr->addCameraSceneNode(0, vector3df(0, 30, -40), vector3df(0, 5, 0));
@@ -61,19 +61,19 @@ int main()
 		core::vector3df platePosition = plateSceneNode->getPosition();
 		core::vector3df plateRotation = plateSceneNode->getRotation();
 		if (receiver.IsKeyDown(irr::KEY_KEY_W)) {
-			plateRotation.X += 0.1;
+			plateRotation.X += 0.01;
 		}
 		//			nodePosition.Y += MOVEMENT_SPEED * frameDeltaTime;
 		else if (receiver.IsKeyDown(irr::KEY_KEY_S)) {
-			plateRotation.X -= 0.1;
+			plateRotation.X -= 0.01;
 		}
 		//		nodePosition.Y -= MOVEMENT_SPEED * frameDeltaTime;
 		else if (receiver.IsKeyDown(irr::KEY_KEY_A)) {
-			plateRotation.Y += 0.1;
+			plateRotation.Z += 0.01;
 		}
 		//	nodePosition.X -= MOVEMENT_SPEED * frameDeltaTime;
 		else if (receiver.IsKeyDown(irr::KEY_KEY_D)) {
-			plateRotation.Y -= 0.1;
+			plateRotation.Z -= 0.01;
 		}
 		//nodePosition.X += MOVEMENT_SPEED * frameDeltaTime;
 		plateSceneNode->setPosition(platePosition);
