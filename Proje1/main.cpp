@@ -9,20 +9,34 @@ using namespace scene;
 using namespace video;
 using namespace io;
 using namespace gui;
+using namespace std;
 
 #ifdef _IRR_WINDOWS_
 #pragma comment(lib, "Irrlicht.lib")
 #pragma comment(linker, "/subsystem:windows /ENTRY:mainCRTStartup")
 #endif
 
+
+IrrlichtDevice *device = 0;
+
+void setActiveCamera(scene::ICameraSceneNode* newActive)
+{
+	if (0 == device)
+		return;
+
+	scene::ICameraSceneNode * active = device->getSceneManager()->getActiveCamera();
+	active->setInputReceiverEnabled(false);
+
+	newActive->setInputReceiverEnabled(true);
+	device->getSceneManager()->setActiveCamera(newActive);
+}
+
 int main()
 {
 	EventReceiver receiver;
 
 	video::E_DRIVER_TYPE driverType = video::E_DRIVER_TYPE::EDT_OPENGL;
-	IrrlichtDevice *device =
-		createDevice(driverType, dimension2d<u32>(760, 600), 16,
-			false, false, false, &receiver);
+	device =  createDevice(driverType, dimension2d<u32>(760, 600), 16, false, false, false, &receiver);
 
 	if (!device)
 		return 1;
@@ -36,12 +50,15 @@ int main()
 	/*smgr->setambientlight(video::scolorf(0.0, 0.0, 0.0, 1));
 	ILightSceneNode* light1 = smgr->addLightSceneNode(0, core::vector3df(0, 400, -200), video::SColorf(0.3f, 0.0f, 0.0f), 1.0f, 1);
 */
+
+
 	/* My Codes */
 	// Create Platform
 	scene::ISceneNode* plateSceneNode = smgr->addCubeSceneNode();
 	if (plateSceneNode) {
 		plateSceneNode->setScale(vector3df(4, 0.01, 4));
 	}
+	
 	// Create Ball
 	IAnimatedMesh* ballMesh = smgr->getMesh("Ball/ball.obj");
 	ISceneNode* ballSceneNode = 0;
@@ -55,6 +72,12 @@ int main()
 	}
 
 	smgr->addCameraSceneNode(0, vector3df(0, 30, -40), vector3df(0, 5, 0));
+	scene::ICameraSceneNode *camera = smgr->addCameraSceneNodeMaya(0, -100.0f, 100.0f, 100.0f);
+	camera->setFarValue(10000.f);
+	camera->setTarget(core::vector3df(0,30,0));
+	setActiveCamera(camera);
+
+
 
 	while (device->run())
 	{
