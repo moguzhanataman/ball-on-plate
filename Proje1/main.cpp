@@ -55,10 +55,13 @@ int main()
 	/* My Codes */
 	// Create Platform
 	scene::ISceneNode* plateSceneNode = smgr->addCubeSceneNode();
+
+
 	if (plateSceneNode) {
 		plateSceneNode->setScale(vector3df(4, 0.01, 4));
 	}
-	
+
+
 	// Create Ball
 	IAnimatedMesh* ballMesh = smgr->getMesh("Ball/ball.obj");
 	ISceneNode* ballSceneNode = 0;
@@ -73,9 +76,10 @@ int main()
 
 	smgr->addCameraSceneNode(0, vector3df(0, 30, -40), vector3df(0, 5, 0));
 	scene::ICameraSceneNode *camera = smgr->addCameraSceneNodeMaya(0, -100.0f, 100.0f, 100.0f);
-	camera->setFarValue(10000.f);
+	camera->setFarValue(20000.f);
 	camera->setTarget(core::vector3df(0,30,0));
 	setActiveCamera(camera);
+
 
 
 
@@ -83,19 +87,19 @@ int main()
 	{
 		core::vector3df platePosition = plateSceneNode->getPosition();
 		core::vector3df plateRotation = plateSceneNode->getRotation();
-		if (receiver.IsKeyDown(irr::KEY_KEY_W)) {
+		if (receiver.IsKeyDown(irr::KEY_KEY_A)) {
 			plateRotation.X += 0.01;
 		}
 		//			nodePosition.Y += MOVEMENT_SPEED * frameDeltaTime;
-		else if (receiver.IsKeyDown(irr::KEY_KEY_S)) {
+		else if (receiver.IsKeyDown(irr::KEY_KEY_D)) {
 			plateRotation.X -= 0.01;
 		}
 		//		nodePosition.Y -= MOVEMENT_SPEED * frameDeltaTime;
-		else if (receiver.IsKeyDown(irr::KEY_KEY_A)) {
+		else if (receiver.IsKeyDown(irr::KEY_KEY_W)) {
 			plateRotation.Z += 0.01;
 		}
 		//	nodePosition.X -= MOVEMENT_SPEED * frameDeltaTime;
-		else if (receiver.IsKeyDown(irr::KEY_KEY_D)) {
+		else if (receiver.IsKeyDown(irr::KEY_KEY_S)) {
 			plateRotation.Z -= 0.01;
 		}
 		//nodePosition.X += MOVEMENT_SPEED * frameDeltaTime;
