@@ -54,13 +54,22 @@ int main()
 
 	/* My Codes */
 	// Create Platform
-	scene::ISceneNode* plateSceneNode = smgr->addCubeSceneNode();
+	scene::ISceneNode* plateModelSceneNode = smgr->addEmptySceneNode();
 
-
-	if (plateSceneNode) {
-		plateSceneNode->setScale(vector3df(4, 0.01, 4));
+	// Create Plate
+	IAnimatedMesh* plateMesh = smgr->getMesh("Plate/plate.obj");
+	ISceneNode* plateSceneNode = 0;
+	if (plateMesh)
+	{
+		//node2 = smgr->addOctreeSceneNode(mesh2->getMesh(0), 0, -1, 1024);
+		plateSceneNode = smgr->addMeshSceneNode(plateMesh->getMesh(0));
+		plateSceneNode->setMaterialFlag(EMF_LIGHTING, false);
+		//plateSceneNode->setPosition(core::vector3df(0, 2, 0));
+		plateSceneNode->setScale(vector3df(2, 2, 2));
 	}
 
+	// Add ball as child to plate
+	plateModelSceneNode->addChild(plateSceneNode);
 
 	// Create Ball
 	IAnimatedMesh* ballMesh = smgr->getMesh("Ball/ball.obj");
@@ -70,9 +79,12 @@ int main()
 		//node2 = smgr->addOctreeSceneNode(mesh2->getMesh(0), 0, -1, 1024);
 		ballSceneNode = smgr->addMeshSceneNode(ballMesh->getMesh(0));
 		ballSceneNode->setMaterialFlag(EMF_LIGHTING, false);
-		ballSceneNode->setPosition(core::vector3df(0, 5, 0));
+		ballSceneNode->setPosition(core::vector3df(10, 2, 10));
 		ballSceneNode->setScale(vector3df(2, 2, 2));
 	}
+
+	// Add ball as child to plate
+	plateModelSceneNode->addChild(ballSceneNode);
 
 	smgr->addCameraSceneNode(0, vector3df(0, 30, -40), vector3df(0, 5, 0));
 	scene::ICameraSceneNode *camera = smgr->addCameraSceneNodeMaya(0, -100.0f, 100.0f, 100.0f);
@@ -80,13 +92,10 @@ int main()
 	camera->setTarget(core::vector3df(0,30,0));
 	setActiveCamera(camera);
 
-
-
-
 	while (device->run())
 	{
-		core::vector3df platePosition = plateSceneNode->getPosition();
-		core::vector3df plateRotation = plateSceneNode->getRotation();
+		core::vector3df platePosition = plateModelSceneNode->getPosition();
+		core::vector3df plateRotation = plateModelSceneNode->getRotation();
 		if (receiver.IsKeyDown(irr::KEY_KEY_A)) {
 			plateRotation.X += 0.01;
 		}
@@ -103,8 +112,8 @@ int main()
 			plateRotation.Z -= 0.01;
 		}
 		//nodePosition.X += MOVEMENT_SPEED * frameDeltaTime;
-		plateSceneNode->setPosition(platePosition);
-		plateSceneNode->setRotation(plateRotation);
+		plateModelSceneNode->setPosition(platePosition);
+		plateModelSceneNode->setRotation(plateRotation);
 		driver->beginScene(true, true, SColor(255, 100, 101, 140));
 
 		smgr->drawAll();
