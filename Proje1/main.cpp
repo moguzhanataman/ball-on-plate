@@ -83,6 +83,12 @@ int main()
 		ballSceneNode->setScale(vector3df(2, 2, 2));
 	}
 
+	scene::ISceneNode* cylinderSceneNode = smgr->addCubeSceneNode();
+	cylinderSceneNode->setPosition(core::vector3df(1, -11, 1));
+	cylinderSceneNode->setScale(vector3df(0.3, 2, 0.3));
+	cylinderSceneNode->setMaterialFlag(EMF_LIGHTING, false);
+	//cylinderSceneNode->setMD2Animation(scene::EMAT_STAND);
+	cylinderSceneNode->setMaterialTexture(0, driver->getTexture("Cylinder/Cylinder.jpg"));
 	// Add ball as child to plate
 	plateModelSceneNode->addChild(ballSceneNode);
 
