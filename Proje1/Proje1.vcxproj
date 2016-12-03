@@ -71,8 +71,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Users\oguzhan\irrlicht-1.8.4\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\oguzhan\irrlicht-1.8.4\lib\Win32-visualstudio;$(LibraryPath)</LibraryPath>
+    <IncludePath>D:\Programs\irrlicht-1.8.4\include;$(IncludePath)</IncludePath>
+    <LibraryPath>D:\Programs\irrlicht-1.8.4\lib\Win32-visualstudio;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
