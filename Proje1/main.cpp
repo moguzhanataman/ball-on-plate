@@ -231,7 +231,7 @@ int main() {
 		plateSceneNode = smgrFor3D->addMeshSceneNode(plateMesh->getMesh(0));
 		plateSceneNode->setMaterialFlag(EMF_LIGHTING, false);
 		//plateSceneNode->setPosition(core::vector3df(0, 2, 0));
-		plateSceneNode->setScale(vector3df(2, 2, 2));
+		plateSceneNode->setScale(vector3df(2, 2, 3));
 	}
 
 	// Add ball as child to plate
@@ -245,12 +245,12 @@ int main() {
 		//node2 = smgr->addOctreeSceneNode(mesh2->getMesh(0), 0, -1, 1024);
 		ballSceneNode = smgrFor3D->addMeshSceneNode(ballMesh->getMesh(0));
 		ballSceneNode->setMaterialFlag(EMF_LIGHTING, false);
-		ballSceneNode->setPosition(core::vector3df(10, 2, 10));
+		ballSceneNode->setPosition(core::vector3df(0, 2, 0));
 		ballSceneNode->setScale(vector3df(2, 2, 2));
 	}
 
 	scene::ISceneNode* cylinderSceneNode = smgrFor3D->addCubeSceneNode();
-	cylinderSceneNode->setPosition(core::vector3df(1, -11, 1));
+	cylinderSceneNode->setPosition(core::vector3df(1, -11, 0.2));
 	cylinderSceneNode->setScale(vector3df(0.3, 2, 0.3));
 	cylinderSceneNode->setMaterialFlag(EMF_LIGHTING, false);
 	//cylinderSceneNode->setMD2Animation(scene::EMAT_STAND);
@@ -271,27 +271,28 @@ int main() {
 		core::vector3df platePosition = plateModelSceneNode->getPosition();
 		core::vector3df plateRotation = plateModelSceneNode->getRotation();
 		if (receiverForPlate.IsKeyDown(irr::KEY_KEY_A)) {
-			plateRotation.X += 0.1;
+			plateRotation.X += 0.3;
 		}
 		//			nodePosition.Y += MOVEMENT_SPEED * frameDeltaTime;
 		else if (receiverForPlate.IsKeyDown(irr::KEY_KEY_D)) {
-			plateRotation.X -= 0.1;
+			plateRotation.X -= 0.3;
 		}
 		//		nodePosition.Y -= MOVEMENT_SPEED * frameDeltaTime;
 		else if (receiverForPlate.IsKeyDown(irr::KEY_KEY_W)) {
-			plateRotation.Z += 0.1;
+			plateRotation.Z += 0.3;
 		}
 		//	nodePosition.X -= MOVEMENT_SPEED * frameDeltaTime;
 		else if (receiverForPlate.IsKeyDown(irr::KEY_KEY_S)) {
-			plateRotation.Z -= 0.1;
+			plateRotation.Z -= 0.3;
 		}
 		//nodePosition.X += MOVEMENT_SPEED * frameDeltaTime;
 		plateModelSceneNode->setPosition(platePosition);
 		plateModelSceneNode->setRotation(plateRotation);
-		driverFor3D->beginScene(true, true, SColor(255, 100, 101, 140));
+		
 
 		bool movedWithJoystick = false;
 		driverFor2D->beginScene(true, true, video::SColor(200, 113, 113, 133));
+		driverFor3D->beginScene(true, true, SColor(255, 100, 101, 140));
 
 		driverFor2D->enableMaterial2D();
 		driverFor2D->draw2DPolygon(mouseReceiver.GetMouseState().Position, 20, video::SColor(10, 10, 10, 10), 100000);
