@@ -142,13 +142,13 @@ void setActiveCamera(scene::ICameraSceneNode* newActive)
 
 
 int main() {
-	
-	MouseEventReceiverFor2D mouseReceiver;  
+
+	MouseEventReceiverFor2D mouseReceiver;
 	MouseEventReceiverFor3D receiverForPlate;
 
 	deviceFor3D = createDevice(irr::video::EDT_OPENGL, dimension2d<u32>(ResX, ResY), 16, false, false, false, &receiverForPlate);
 	IrrlichtDevice* deviceFor2D = createDevice(video::E_DRIVER_TYPE::EDT_BURNINGSVIDEO,
-		core::dimension2d<u32>( ResX, ResY), 16, false, false, false, &mouseReceiver);
+		core::dimension2d<u32>(ResX, ResY), 16, false, false, false, &mouseReceiver);
 
 
 	if (deviceFor2D == 0)
@@ -171,7 +171,7 @@ int main() {
 	IGUIEnvironment* guienvFor3D = deviceFor3D->getGUIEnvironment();
 
 
-	
+
 
 	core::array<SJoystickInfo> joystickInfoFor2D;
 	if (deviceFor2D->activateJoysticks(joystickInfoFor2D))
@@ -216,7 +216,7 @@ int main() {
 
 	deviceFor2D->setWindowCaption(L"Ball on Plate - 2D");
 
-	
+
 
 
 	// 3D Part
@@ -264,32 +264,41 @@ int main() {
 	camera->setFarValue(20000.f);
 	camera->setTarget(core::vector3df(0, 30, 0));
 	setActiveCamera(camera);
-	
+
 
 	while (deviceFor2D->run() && deviceFor3D->run())
 	{
-
+		core::vector3df ballRotation = ballSceneNode->getRotation();
+		core::vector3df ballPosition = ballSceneNode->getPosition();
 		core::vector3df platePosition = plateModelSceneNode->getPosition();
 		core::vector3df plateRotation = plateModelSceneNode->getRotation();
+
 		if (receiverForPlate.IsKeyDown(irr::KEY_KEY_A)) {
-			plateRotation.X += 0.3;
+			plateRotation.X += 0.1;
+			ballPosition.Z += 0.1;
 		}
-		//			nodePosition.Y += MOVEMENT_SPEED * frameDeltaTime;
+		//   nodePosition.Y += MOVEMENT_SPEED * frameDeltaTime;
 		else if (receiverForPlate.IsKeyDown(irr::KEY_KEY_D)) {
-			plateRotation.X -= 0.3;
+			plateRotation.X -= 0.1;
+			ballPosition.Z -= 0.1;
 		}
-		//		nodePosition.Y -= MOVEMENT_SPEED * frameDeltaTime;
+		//  nodePosition.Y -= MOVEMENT_SPEED * frameDeltaTime;
 		else if (receiverForPlate.IsKeyDown(irr::KEY_KEY_W)) {
-			plateRotation.Z += 0.3;
+			plateRotation.Z -= 0.1;
+			ballPosition.X += 0.1;
 		}
-		//	nodePosition.X -= MOVEMENT_SPEED * frameDeltaTime;
+		// nodePosition.X -= MOVEMENT_SPEED * frameDeltaTime;
 		else if (receiverForPlate.IsKeyDown(irr::KEY_KEY_S)) {
-			plateRotation.Z -= 0.3;
+			plateRotation.Z += 0.1;
+			ballPosition.X -= 0.1;
 		}
+
+
 		//nodePosition.X += MOVEMENT_SPEED * frameDeltaTime;
 		plateModelSceneNode->setPosition(platePosition);
 		plateModelSceneNode->setRotation(plateRotation);
-		
+		ballSceneNode->setPosition(ballPosition);
+		ballSceneNode->setRotation(ballRotation);
 
 		bool movedWithJoystick = false;
 		driverFor2D->beginScene(true, true, video::SColor(200, 113, 113, 133));
