@@ -147,8 +147,9 @@ int main() {
 	MouseEventReceiverFor3D receiverForPlate;
 
 	deviceFor3D = createDevice(irr::video::EDT_OPENGL, dimension2d<u32>(ResX, ResY), 16, false, false, false, &receiverForPlate);
-	IrrlichtDevice* deviceFor2D = createDevice(video::E_DRIVER_TYPE::EDT_DIRECT3D9,
+	IrrlichtDevice* deviceFor2D = createDevice(video::E_DRIVER_TYPE::EDT_BURNINGSVIDEO,
 		core::dimension2d<u32>( ResX, ResY), 16, false, false, false, &mouseReceiver);
+
 
 	if (deviceFor2D == 0)
 		return 1; // could not create selected driver.
