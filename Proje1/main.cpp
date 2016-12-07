@@ -268,43 +268,30 @@ int main() {
 
 	while (deviceFor2D->run() && deviceFor3D->run())
 	{
-<<<<<<< HEAD
-		
-		ballSceneNode->setPosition(core::vector3df(-15 + mouseReceiver.GetMouseState().Position.Y * (46.0 / 640), 2, 
-			-20 +  mouseReceiver.GetMouseState().Position.X * (30.0 / 480)));
-=======
-		core::vector3df ballRotation = ballSceneNode->getRotation();
-		core::vector3df ballPosition = ballSceneNode->getPosition();
->>>>>>> d83c763f6f760a66524dd710ca4c047d6842699d
+
+		ballSceneNode->setPosition(core::vector3df(-15 + mouseReceiver.GetMouseState().Position.Y * (46.0 / 640), 2,
+			-20 + mouseReceiver.GetMouseState().Position.X * (30.0 / 480)));
 		core::vector3df platePosition = plateModelSceneNode->getPosition();
 		core::vector3df plateRotation = plateModelSceneNode->getRotation();
-
 		if (receiverForPlate.IsKeyDown(irr::KEY_KEY_A)) {
-			plateRotation.X += 0.1;
-			ballPosition.Z += 0.1;
+			plateRotation.X += 0.3;
 		}
-		//   nodePosition.Y += MOVEMENT_SPEED * frameDeltaTime;
+		//			nodePosition.Y += MOVEMENT_SPEED * frameDeltaTime;
 		else if (receiverForPlate.IsKeyDown(irr::KEY_KEY_D)) {
-			plateRotation.X -= 0.1;
-			ballPosition.Z -= 0.1;
+			plateRotation.X -= 0.3;
 		}
-		//  nodePosition.Y -= MOVEMENT_SPEED * frameDeltaTime;
+		//		nodePosition.Y -= MOVEMENT_SPEED * frameDeltaTime;
 		else if (receiverForPlate.IsKeyDown(irr::KEY_KEY_W)) {
-			plateRotation.Z -= 0.1;
-			ballPosition.X += 0.1;
+			plateRotation.Z += 0.3;
 		}
-		// nodePosition.X -= MOVEMENT_SPEED * frameDeltaTime;
+		//	nodePosition.X -= MOVEMENT_SPEED * frameDeltaTime;
 		else if (receiverForPlate.IsKeyDown(irr::KEY_KEY_S)) {
-			plateRotation.Z += 0.1;
-			ballPosition.X -= 0.1;
+			plateRotation.Z -= 0.3;
 		}
-
-
 		//nodePosition.X += MOVEMENT_SPEED * frameDeltaTime;
 		plateModelSceneNode->setPosition(platePosition);
 		plateModelSceneNode->setRotation(plateRotation);
-		ballSceneNode->setPosition(ballPosition);
-		ballSceneNode->setRotation(ballRotation);
+
 
 		bool movedWithJoystick = false;
 		driverFor2D->beginScene(true, true, video::SColor(200, 113, 113, 133));
