@@ -268,7 +268,9 @@ int main() {
 
 	while (deviceFor2D->run() && deviceFor3D->run())
 	{
-
+		
+		ballSceneNode->setPosition(core::vector3df(-15 + mouseReceiver.GetMouseState().Position.Y * (46.0 / 640), 2, 
+			-20 +  mouseReceiver.GetMouseState().Position.X * (30.0 / 480)));
 		core::vector3df platePosition = plateModelSceneNode->getPosition();
 		core::vector3df plateRotation = plateModelSceneNode->getRotation();
 		if (receiverForPlate.IsKeyDown(irr::KEY_KEY_A)) {
