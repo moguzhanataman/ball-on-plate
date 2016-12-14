@@ -148,7 +148,7 @@ int main() {
 
 	deviceFor3D = createDevice(irr::video::EDT_OPENGL, dimension2d<u32>(ResX, ResY), 16, false, false, false, &receiverForPlate);
 	IrrlichtDevice* deviceFor2D = createDevice(video::E_DRIVER_TYPE::EDT_BURNINGSVIDEO,
-		core::dimension2d<u32>(ResX, ResY), 16, false, false, false, &mouseReceiver);
+		core::dimension2d<u32>(1.5*ResX, 1.5*ResY), 16, false, false, false, &mouseReceiver);
 
 
 	if (deviceFor2D == 0)
@@ -213,11 +213,12 @@ int main() {
 	tmp += joystickInfoFor2D.size();
 	tmp += " joysticks)";
 
-
+	
 	deviceFor2D->setWindowCaption(L"Ball on Plate - 2D");
 
 
-
+	IGUIButton* firstButton = guienvFor2D->addButton(core::rect<s32>(ResX, 20, ResX + 40, 40),0,-1, L"1");
+	
 
 	// 3D Part
 	// Create Platform
@@ -274,7 +275,8 @@ int main() {
 	camera->setTarget(core::vector3df(10, 15, 0));
 	setActiveCamera(camera);
 
-
+	int count = 0;
+	wchar_t wideArr[101] = L"";
 	while (deviceFor2D->run() && deviceFor3D->run())
 	{
 
@@ -302,6 +304,7 @@ int main() {
 		plateModelSceneNode->setRotation(plateRotation);
 
 
+
 		bool movedWithJoystick = false;
 		driverFor2D->beginScene(true, true, video::SColor(200, 113, 113, 133));
 		driverFor3D->beginScene(true, true, SColor(255, 100, 101, 140));
@@ -313,8 +316,14 @@ int main() {
 		driverFor2D->draw2DRectangleOutline(core::recti(40, 40, ResX - 40, ResY - 40), video::SColor(255, 255, 50, 80));
 		driverFor2D->enableMaterial2D(false);
 
+		if (firstButton->isPressed()) {
+			swprintf(wideArr, 100, L"%d", count++);
+			firstButton->setText(wideArr);
+		}
+
 		smgrFor3D->drawAll();
 		guienvFor3D->drawAll();
+		guienvFor2D->drawAll();
 		smgrFor2D->drawAll(); // draw the 2d scene
 		driverFor2D->endScene();
 		driverFor3D->endScene();
