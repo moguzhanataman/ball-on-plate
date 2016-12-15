@@ -217,10 +217,28 @@ int main() {
 	deviceFor2D->setWindowCaption(L"Ball on Plate - 2D");
 
 
-	IGUIButton* firstButton = guienvFor2D->addButton(core::rect<s32>(ResX, 20, ResX + 40, 40),0,-1, L"1");
-	
+	IGUIButton* firstButton = guienvFor2D->addButton(core::rect<s32>(ResX+120, 140, ResX + 180, 160),0,-1, L"Change");
 
-	// 3D Part
+	IGUIStaticText* pxText = guienvFor2D->addStaticText(L"px: ", core::rect<s32>(ResX , 35, ResX + 20, 50));
+	IGUIEditBox* px = guienvFor2D->addEditBox(L"px", core::rect<s32>(ResX+20, 20, ResX + 80, 60));
+	
+	IGUIStaticText* dxText = guienvFor2D->addStaticText(L"dx: ", core::rect<s32>(ResX+100, 35, ResX + 120, 50));
+	IGUIEditBox* dx = guienvFor2D->addEditBox(L"dx", core::rect<s32>(ResX+120, 20, ResX + 180, 60));
+
+	IGUIStaticText* ixText = guienvFor2D->addStaticText(L"ix: ", core::rect<s32>(ResX+200, 35, ResX + 220, 50));
+	IGUIEditBox* ix = guienvFor2D->addEditBox(L"ix", core::rect<s32>(ResX+220, 20, ResX + 280, 60));
+
+	IGUIStaticText* pyText = guienvFor2D->addStaticText(L"py: ", core::rect<s32>(ResX, 95, ResX + 20, 120));
+	IGUIEditBox* py = guienvFor2D->addEditBox(L"py", core::rect<s32>(ResX+20, 80, ResX + 80, 120));
+
+	IGUIStaticText* dyText = guienvFor2D->addStaticText(L"dy: ", core::rect<s32>(ResX+100, 95, ResX + 120, 110));
+	IGUIEditBox* dy = guienvFor2D->addEditBox(L"dy", core::rect<s32>(ResX+120, 80, ResX + 180, 120));
+
+	IGUIStaticText* iyText = guienvFor2D->addStaticText(L"iy: ", core::rect<s32>(ResX+200, 95, ResX + 220, 110));
+	IGUIEditBox* iy = guienvFor2D->addEditBox(L"iy", core::rect<s32>(ResX+220, 80, ResX + 280, 120));
+
+
+ 	// 3D Part
 	// Create Platform
 	scene::ISceneNode* plateModelSceneNode = smgrFor3D->addEmptySceneNode();
 
@@ -275,8 +293,7 @@ int main() {
 	camera->setTarget(core::vector3df(10, 15, 0));
 	setActiveCamera(camera);
 
-	int count = 0;
-	wchar_t wideArr[101] = L"";
+	
 	while (deviceFor2D->run() && deviceFor3D->run())
 	{
 
@@ -317,8 +334,7 @@ int main() {
 		driverFor2D->enableMaterial2D(false);
 
 		if (firstButton->isPressed()) {
-			swprintf(wideArr, 100, L"%d", count++);
-			firstButton->setText(wideArr);
+			firstButton->setPressed(false);
 		}
 
 		smgrFor3D->drawAll();
