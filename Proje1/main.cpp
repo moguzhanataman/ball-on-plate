@@ -259,10 +259,19 @@ int main() {
 	// Add ball as child to plate
 	plateModelSceneNode->addChild(ballSceneNode);
 
+
+	// Alat plaka
+	scene::ISceneNode* lowerPlate = smgrFor3D->addCubeSceneNode();
+	if (plateSceneNode) {
+		lowerPlate->setScale(vector3df(4, 0.1, 4));
+	}
+	lowerPlate->setPosition(core::vector3df(1, -22, 0.2));
+
+
 	smgrFor3D->addCameraSceneNode(0, vector3df(0, 30, -40), vector3df(0, 5, 0));
 	scene::ICameraSceneNode *camera = smgrFor3D->addCameraSceneNodeMaya(0, -100.0f, 100.0f, 100.0f);
 	camera->setFarValue(20000.f);
-	camera->setTarget(core::vector3df(0, 30, 0));
+	camera->setTarget(core::vector3df(10, 15, 0));
 	setActiveCamera(camera);
 
 
