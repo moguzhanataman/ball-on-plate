@@ -49,7 +49,7 @@ public:
 
 	MouseEventReceiverFor3D()
 	{
-		for (u32 i = 0; i<KEY_KEY_CODES_COUNT; ++i)
+		for (u32 i = 0; i < KEY_KEY_CODES_COUNT; ++i)
 			KeyIsDown[i] = false;
 	}
 
@@ -164,11 +164,21 @@ int main() {
 	driverFor2D->getMaterial2D().TextureLayer[0].BilinearFilter = true;
 	driverFor2D->getMaterial2D().AntiAliasing = video::EAAM_FULL_BASIC;
 
-	IGUIButton* buttonCircle = guienvFor2D->addButton(rect<s32>(10, 480, 130, 510 + 32), 0, -1, L"", L"DRAW CIRCLE");
-	buttonCircle->setDrawBorder(0);
+	IGUIButton* buttonCircle = guienvFor2D->addButton(rect<s32>(20, ResY + 30, 120, ResY + 60 + 32), 0, -1,
+		L"", L"DRAW CIRCLE");
+
+	/*buttonCircle->setDrawBorder(false);
 	buttonCircle->setUseAlphaChannel(true);
 	buttonCircle->setScaleImage(true);
-	buttonCircle->setImage(driverFor2D->getTexture("assets/circle.jpg"));
+	buttonCircle->setImage(driverFor2D->getTexture("buttons/butonC.png"));*/
+
+
+	IGUIButton* buttonRectangle = guienvFor2D->addButton(rect<s32>(140, ResY + 30, 240, ResY + 60 + 32), 0, -1,
+		L"", L"DRAW RECTANGLE");
+
+	IGUIButton* buttonTriangle = guienvFor2D->addButton(rect<s32>(260, ResY + 30, 360, ResY + 60 + 32), 0, -1,
+		L"", L"DRAW TRIANGLE");
+
 
 	IVideoDriver* driverFor3D = deviceFor3D->getVideoDriver();
 	ISceneManager* smgrFor3D = deviceFor3D->getSceneManager();
@@ -215,32 +225,35 @@ int main() {
 	tmp += joystickInfoFor2D.size();
 	tmp += " joysticks)";
 
-	
+
 	deviceFor2D->setWindowCaption(L"Ball on Plate - 2D");
 
 
-	IGUIButton* firstButton = guienvFor2D->addButton(core::rect<s32>(ResX+120, 140, ResX + 180, 160),0,-1, L"Change");
+	IGUIButton* firstButton = guienvFor2D->addButton(core::rect<s32>(ResX + 140, 140, ResX + 200, 160), 0, -1, L"Change");
 
-	IGUIStaticText* pxText = guienvFor2D->addStaticText(L"px: ", core::rect<s32>(ResX , 35, ResX + 20, 50));
-	IGUIEditBox* px = guienvFor2D->addEditBox(L"px", core::rect<s32>(ResX+20, 20, ResX + 80, 60));
-	
-	IGUIStaticText* dxText = guienvFor2D->addStaticText(L"dx: ", core::rect<s32>(ResX+100, 35, ResX + 120, 50));
-	IGUIEditBox* dx = guienvFor2D->addEditBox(L"dx", core::rect<s32>(ResX+120, 20, ResX + 180, 60));
+	IGUIStaticText* pxText = guienvFor2D->addStaticText(L"px: ", core::rect<s32>(ResX + 20, 35, ResX + 40, 50));
+	IGUIEditBox* px = guienvFor2D->addEditBox(L"px", core::rect<s32>(ResX + 40, 20, ResX + 100, 60));
 
-	IGUIStaticText* ixText = guienvFor2D->addStaticText(L"ix: ", core::rect<s32>(ResX+200, 35, ResX + 220, 50));
-	IGUIEditBox* ix = guienvFor2D->addEditBox(L"ix", core::rect<s32>(ResX+220, 20, ResX + 280, 60));
+	IGUIStaticText* dxText = guienvFor2D->addStaticText(L"dx: ", core::rect<s32>(ResX + 120, 35, ResX + 140, 50));
+	IGUIEditBox* dx = guienvFor2D->addEditBox(L"dx", core::rect<s32>(ResX + 140, 20, ResX + 200, 60));
 
-	IGUIStaticText* pyText = guienvFor2D->addStaticText(L"py: ", core::rect<s32>(ResX, 95, ResX + 20, 120));
-	IGUIEditBox* py = guienvFor2D->addEditBox(L"py", core::rect<s32>(ResX+20, 80, ResX + 80, 120));
+	IGUIStaticText* ixText = guienvFor2D->addStaticText(L"ix: ", core::rect<s32>(ResX + 220, 35, ResX + 240, 50));
+	IGUIEditBox* ix = guienvFor2D->addEditBox(L"ix", core::rect<s32>(ResX + 240, 20, ResX + 300, 60));
 
-	IGUIStaticText* dyText = guienvFor2D->addStaticText(L"dy: ", core::rect<s32>(ResX+100, 95, ResX + 120, 110));
-	IGUIEditBox* dy = guienvFor2D->addEditBox(L"dy", core::rect<s32>(ResX+120, 80, ResX + 180, 120));
+	IGUIStaticText* pyText = guienvFor2D->addStaticText(L"py: ", core::rect<s32>(ResX + 20, 95, ResX + 40, 120));
+	IGUIEditBox* py = guienvFor2D->addEditBox(L"py", core::rect<s32>(ResX + 40, 80, ResX + 100, 120));
 
-	IGUIStaticText* iyText = guienvFor2D->addStaticText(L"iy: ", core::rect<s32>(ResX+200, 95, ResX + 220, 110));
-	IGUIEditBox* iy = guienvFor2D->addEditBox(L"iy", core::rect<s32>(ResX+220, 80, ResX + 280, 120));
+	IGUIStaticText* dyText = guienvFor2D->addStaticText(L"dy: ", core::rect<s32>(ResX + 120, 95, ResX + 140, 110));
+	IGUIEditBox* dy = guienvFor2D->addEditBox(L"dy", core::rect<s32>(ResX + 140, 80, ResX + 200, 120));
+
+	IGUIStaticText* iyText = guienvFor2D->addStaticText(L"iy: ", core::rect<s32>(ResX + 220, 95, ResX + 240, 110));
+	IGUIEditBox* iy = guienvFor2D->addEditBox(L"iy", core::rect<s32>(ResX + 240, 80, ResX + 300, 120));
 
 
- 	// 3D Part
+
+
+
+	// 3D Part
 	// Create Platform
 	scene::ISceneNode* plateModelSceneNode = smgrFor3D->addEmptySceneNode();
 
@@ -329,6 +342,64 @@ int main() {
 		bool movedWithJoystick = false;
 		driverFor2D->beginScene(true, true, video::SColor(200, 113, 113, 133));
 		driverFor3D->beginScene(true, true, SColor(255, 100, 101, 140));
+
+
+		driverFor2D->draw2DLine(position2di(20, ResY - 10), position2di(20, ResY + 10), SColor(255, 0, 0, 0));
+		driverFor2D->draw2DLine(position2di(40, ResY - 10), position2di(40, ResY), SColor(255, 0, 0, 0));
+		driverFor2D->draw2DLine(position2di(60, ResY - 10), position2di(60, ResY + 10), SColor(255, 0, 0, 0));
+		driverFor2D->draw2DLine(position2di(80, ResY - 10), position2di(80, ResY), SColor(255, 0, 0, 0));
+		driverFor2D->draw2DLine(position2di(100, ResY - 10), position2di(100, ResY + 10), SColor(255, 0, 0, 0));
+		driverFor2D->draw2DLine(position2di(120, ResY - 10), position2di(120, ResY), SColor(255, 0, 0, 0));
+		driverFor2D->draw2DLine(position2di(140, ResY - 10), position2di(140, ResY + 10), SColor(255, 0, 0, 0));
+		driverFor2D->draw2DLine(position2di(160, ResY - 10), position2di(160, ResY), SColor(255, 0, 0, 0));
+		driverFor2D->draw2DLine(position2di(180, ResY - 10), position2di(180, ResY + 10), SColor(255, 0, 0, 0));
+		driverFor2D->draw2DLine(position2di(200, ResY - 10), position2di(200, ResY), SColor(255, 0, 0, 0));
+		driverFor2D->draw2DLine(position2di(220, ResY - 10), position2di(220, ResY + 10), SColor(255, 0, 0, 0));
+		driverFor2D->draw2DLine(position2di(240, ResY - 10), position2di(240, ResY), SColor(255, 0, 0, 0));
+		driverFor2D->draw2DLine(position2di(260, ResY - 10), position2di(260, ResY + 10), SColor(255, 0, 0, 0));
+		driverFor2D->draw2DLine(position2di(280, ResY - 10), position2di(280, ResY), SColor(255, 0, 0, 0));
+		driverFor2D->draw2DLine(position2di(300, ResY - 10), position2di(300, ResY + 10), SColor(255, 0, 0, 0));
+		driverFor2D->draw2DLine(position2di(320, ResY - 10), position2di(320, ResY), SColor(255, 0, 0, 0));
+		driverFor2D->draw2DLine(position2di(340, ResY - 10), position2di(340, ResY + 10), SColor(255, 0, 0, 0));
+		driverFor2D->draw2DLine(position2di(360, ResY - 10), position2di(360, ResY), SColor(255, 0, 0, 0));
+		driverFor2D->draw2DLine(position2di(380, ResY - 10), position2di(380, ResY + 10), SColor(255, 0, 0, 0));
+		driverFor2D->draw2DLine(position2di(400, ResY - 10), position2di(400, ResY), SColor(255, 0, 0, 0));
+		driverFor2D->draw2DLine(position2di(420, ResY - 10), position2di(420, ResY + 10), SColor(255, 0, 0, 0));
+		driverFor2D->draw2DLine(position2di(440, ResY - 10), position2di(440, ResY), SColor(255, 0, 0, 0));
+		driverFor2D->draw2DLine(position2di(460, ResY - 10), position2di(460, ResY + 10), SColor(255, 0, 0, 0));
+		driverFor2D->draw2DLine(position2di(480, ResY - 10), position2di(480, ResY), SColor(255, 0, 0, 0));
+		driverFor2D->draw2DLine(position2di(500, ResY - 10), position2di(500, ResY + 10), SColor(255, 0, 0, 0));
+		driverFor2D->draw2DLine(position2di(520, ResY - 10), position2di(520, ResY), SColor(255, 0, 0, 0));
+		driverFor2D->draw2DLine(position2di(540, ResY - 10), position2di(540, ResY + 10), SColor(255, 0, 0, 0));
+		driverFor2D->draw2DLine(position2di(560, ResY - 10), position2di(560, ResY), SColor(255, 0, 0, 0));
+		driverFor2D->draw2DLine(position2di(580, ResY - 10), position2di(580, ResY + 10), SColor(255, 0, 0, 0));
+		driverFor2D->draw2DLine(position2di(600, ResY - 10), position2di(600, ResY), SColor(255, 0, 0, 0));
+		driverFor2D->draw2DLine(position2di(620, ResY - 10), position2di(620, ResY + 10), SColor(255, 0, 0, 0));
+		driverFor2D->draw2DLine(position2di(ResX - 10, 20), position2di(ResX + 10, 20), SColor(255, 0, 0, 0));
+		driverFor2D->draw2DLine(position2di(ResX - 10, 40), position2di(ResX, 40), SColor(255, 0, 0, 0));
+		driverFor2D->draw2DLine(position2di(ResX - 10, 60), position2di(ResX + 10, 60), SColor(255, 0, 0, 0));
+		driverFor2D->draw2DLine(position2di(ResX - 10, 80), position2di(ResX, 80), SColor(255, 0, 0, 0));
+		driverFor2D->draw2DLine(position2di(ResX - 10, 100), position2di(ResX + 10, 100), SColor(255, 0, 0, 0));
+		driverFor2D->draw2DLine(position2di(ResX - 10, 120), position2di(ResX, 120), SColor(255, 0, 0, 0));
+		driverFor2D->draw2DLine(position2di(ResX - 10, 140), position2di(ResX + 10, 140), SColor(255, 0, 0, 0));
+		driverFor2D->draw2DLine(position2di(ResX - 10, 160), position2di(ResX, 160), SColor(255, 0, 0, 0));
+		driverFor2D->draw2DLine(position2di(ResX - 10, 180), position2di(ResX + 10, 180), SColor(255, 0, 0, 0));
+		driverFor2D->draw2DLine(position2di(ResX - 10, 200), position2di(ResX, 200), SColor(255, 0, 0, 0));
+		driverFor2D->draw2DLine(position2di(ResX - 10, 220), position2di(ResX + 10, 220), SColor(255, 0, 0, 0));
+		driverFor2D->draw2DLine(position2di(ResX - 10, 240), position2di(ResX, 240), SColor(255, 0, 0, 0));
+		driverFor2D->draw2DLine(position2di(ResX - 10, 260), position2di(ResX + 10, 260), SColor(255, 0, 0, 0));
+		driverFor2D->draw2DLine(position2di(ResX - 10, 280), position2di(ResX, 280), SColor(255, 0, 0, 0));
+		driverFor2D->draw2DLine(position2di(ResX - 10, 300), position2di(ResX + 10, 300), SColor(255, 0, 0, 0));
+		driverFor2D->draw2DLine(position2di(ResX - 10, 320), position2di(ResX, 320), SColor(255, 0, 0, 0));
+		driverFor2D->draw2DLine(position2di(ResX - 10, 340), position2di(ResX + 10, 340), SColor(255, 0, 0, 0));
+		driverFor2D->draw2DLine(position2di(ResX - 10, 360), position2di(ResX, 360), SColor(255, 0, 0, 0));
+		driverFor2D->draw2DLine(position2di(ResX - 10, 380), position2di(ResX + 10, 380), SColor(255, 0, 0, 0));
+		driverFor2D->draw2DLine(position2di(ResX - 10, 400), position2di(ResX, 400), SColor(255, 0, 0, 0));
+		driverFor2D->draw2DLine(position2di(ResX - 10, 420), position2di(ResX + 10, 420), SColor(255, 0, 0, 0));
+		driverFor2D->draw2DLine(position2di(ResX - 10, 440), position2di(ResX, 440), SColor(255, 0, 0, 0));
+		driverFor2D->draw2DLine(position2di(ResX - 10, 460), position2di(ResX + 10, 460), SColor(255, 0, 0, 0));
+
+
 
 		driverFor2D->enableMaterial2D();
 		driverFor2D->draw2DPolygon(mouseReceiver.GetMouseState().Position, 20, video::SColor(10, 10, 10, 10), 100000);
