@@ -81,7 +81,7 @@ public:
 			switch (event.MouseInput.Event)
 			{
 			case EMIE_LMOUSE_PRESSED_DOWN:
-				if (event.MouseInput.X <ResX - 60 && event.MouseInput.X > 60
+				if (event.MouseInput.X < ResX - 60 && event.MouseInput.X > 60
 					&& event.MouseInput.Y < ResY - 60 && event.MouseInput.Y > 60) {
 					MouseState.Position.X = event.MouseInput.X;
 					MouseState.Position.Y = event.MouseInput.Y;
@@ -164,13 +164,15 @@ int main() {
 	driverFor2D->getMaterial2D().TextureLayer[0].BilinearFilter = true;
 	driverFor2D->getMaterial2D().AntiAliasing = video::EAAM_FULL_BASIC;
 
-
+	IGUIButton* buttonCircle = guienvFor2D->addButton(rect<s32>(10, 480, 130, 510 + 32), 0, -1, L"", L"DRAW CIRCLE");
+	buttonCircle->setDrawBorder(0);
+	buttonCircle->setUseAlphaChannel(true);
+	buttonCircle->setScaleImage(true);
+	buttonCircle->setImage(driverFor2D->getTexture("assets/circle.jpg"));
 
 	IVideoDriver* driverFor3D = deviceFor3D->getVideoDriver();
 	ISceneManager* smgrFor3D = deviceFor3D->getSceneManager();
 	IGUIEnvironment* guienvFor3D = deviceFor3D->getGUIEnvironment();
-
-
 
 
 	core::array<SJoystickInfo> joystickInfoFor2D;
@@ -293,12 +295,14 @@ int main() {
 	camera->setTarget(core::vector3df(10, 15, 0));
 	setActiveCamera(camera);
 
-	
+
 	while (deviceFor2D->run() && deviceFor3D->run())
 	{
 
-		ballSceneNode->setPosition(core::vector3df(-15 + mouseReceiver.GetMouseState().Position.Y * (46.0 / 640), 2,
-			-20 + mouseReceiver.GetMouseState().Position.X * (30.0 / 480)));
+		ballSceneNode->setPosition(core::vector3df(-15.0 + (double)mouseReceiver.GetMouseState().Position.Y * (30.0 / ResY), 2.0,
+			-23.0 + (double)mouseReceiver.GetMouseState().Position.X * (46.0 / ResX)));
+
+
 		core::vector3df platePosition = plateModelSceneNode->getPosition();
 		core::vector3df plateRotation = plateModelSceneNode->getRotation();
 		if (receiverForPlate.IsKeyDown(irr::KEY_KEY_A)) {
