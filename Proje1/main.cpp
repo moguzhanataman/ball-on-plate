@@ -164,20 +164,24 @@ int main() {
 	driverFor2D->getMaterial2D().TextureLayer[0].BilinearFilter = true;
 	driverFor2D->getMaterial2D().AntiAliasing = video::EAAM_FULL_BASIC;
 
-	IGUIButton* buttonCircle = guienvFor2D->addButton(rect<s32>(20, ResY + 30, 120, ResY + 60 + 32), 0, -1,
-		L"", L"DRAW CIRCLE");
-
 	/*buttonCircle->setDrawBorder(false);
 	buttonCircle->setUseAlphaChannel(true);
 	buttonCircle->setScaleImage(true);
 	buttonCircle->setImage(driverFor2D->getTexture("buttons/butonC.png"));*/
 
+	IGUIButton* buttonCircle = guienvFor2D->addButton(rect<s32>(20, ResY + 30, 120, ResY + 60 + 32), 0, -1,
+		L"", L"DRAW CIRCLE");
+	buttonCircle->setImage(driverFor2D->getTexture("assets/circle.jpg"));
 
 	IGUIButton* buttonRectangle = guienvFor2D->addButton(rect<s32>(140, ResY + 30, 240, ResY + 60 + 32), 0, -1,
 		L"", L"DRAW RECTANGLE");
 
+	buttonRectangle->setImage(driverFor2D->getTexture("assets/rectangle.jpg"));
+
 	IGUIButton* buttonTriangle = guienvFor2D->addButton(rect<s32>(260, ResY + 30, 360, ResY + 60 + 32), 0, -1,
 		L"", L"DRAW TRIANGLE");
+
+	buttonTriangle->setImage(driverFor2D->getTexture("assets/triangle.jpg"));
 
 
 	IVideoDriver* driverFor3D = deviceFor3D->getVideoDriver();
@@ -340,8 +344,8 @@ int main() {
 
 
 		bool movedWithJoystick = false;
-		driverFor2D->beginScene(true, true, video::SColor(200, 113, 113, 133));
-		driverFor3D->beginScene(true, true, SColor(255, 100, 101, 140));
+		driverFor2D->beginScene(true, true, video::SColor(200, 41, 57, 85));
+		driverFor3D->beginScene(true, true, SColor(255, 41, 57, 85));
 
 
 		driverFor2D->draw2DLine(position2di(20, ResY - 10), position2di(20, ResY + 10), SColor(255, 0, 0, 0));
