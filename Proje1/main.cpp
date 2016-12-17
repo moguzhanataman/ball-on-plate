@@ -59,10 +59,7 @@ int main() {
 	driverFor2D->getMaterial2D().TextureLayer[0].BilinearFilter = true;
 	driverFor2D->getMaterial2D().AntiAliasing = video::EAAM_FULL_BASIC;
 
-	/*buttonCircle->setDrawBorder(false);
-	buttonCircle->setUseAlphaChannel(true);
-	buttonCircle->setScaleImage(true);
-	buttonCircle->setImage(driverFor2D->getTexture("buttons/butonC.png"));*/
+
 
 	IGUIButton* buttonCircle = guienvFor2D->addButton(rect<s32>(20, ResY + 30, 120, ResY + 60 + 32), 0, -1,
 		L"", L"DRAW CIRCLE");
@@ -127,6 +124,8 @@ int main() {
 
 
 	IGUIButton* changeButton = guienvFor2D->addButton(core::rect<s32>(ResX + 140, 140, ResX + 200, 160), 0, -1, L"Change");
+
+	changeButton->setScaleImage(false);
 
 	IGUIStaticText* pxText = guienvFor2D->addStaticText(L"px: ", core::rect<s32>(ResX + 20, 35, ResX + 40, 50));
 	IGUIEditBox* px = guienvFor2D->addEditBox(L"px", core::rect<s32>(ResX + 40, 20, ResX + 100, 60));
@@ -200,7 +199,7 @@ int main() {
 	camera->setFarValue(20000.f);
 	camera->setTarget(core::vector3df(10, 15, 0));
 	setActiveCamera(camera);
-
+	float arr[6] = {};
 	wchar_t buffer[50] = L"";
 	while (deviceFor2D->run() && deviceFor3D->run())
 	{
@@ -232,8 +231,21 @@ int main() {
 
 		printRuler(driverFor2D);
 
+		/*
+
+		IAnimatedMesh* roommesh = smgrFor3D->getMesh("assets/interior/interior.obj");
 
 
+		ISceneNode* roomNode = 0;
+		if (roommesh)
+		{
+			//node2 = smgr->addOctreeSceneNode(mesh2->getMesh(0), 0, -1, 1024);
+			roomNode = smgrFor3D->addMeshSceneNode(roommesh->getMesh(0));
+			roomNode->setMaterialFlag(EMF_LIGHTING, false);
+			roomNode->setPosition(core::vector3df(-30, -30, -30));
+			roomNode->setScale(vector3df(1, 1, 1));
+		}
+		*/
 
 
 		driverFor2D->enableMaterial2D();
@@ -245,7 +257,6 @@ int main() {
 
 		if (changeButton->isPressed()) {
 			// Some magic here xD
-			float arr[6] = {};
 			arr[0] = std::wcstof(px->getText(), NULL);
 			arr[1] = std::wcstof(ix->getText(), NULL);
 			arr[2] = std::wcstof(dx->getText(), NULL);
@@ -253,7 +264,7 @@ int main() {
 			arr[4] = std::wcstof(iy->getText(), NULL);
 			arr[5] = std::wcstof(dy->getText(), NULL);
 
-			sendPID(arr);
+			//sendPID(arr);
 
 
 			changeButton->setPressed(false);
