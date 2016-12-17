@@ -9,6 +9,7 @@
 #include <rect.h>
 #include "src/EventReceivers/Mouse2D.cpp"
 #include "src/EventReceivers/Mouse3D.cpp"
+#include "serial.h"
 
 using namespace irr;
 using namespace core;
@@ -157,8 +158,8 @@ int main() {
 		//node2 = smgr->addOctreeSceneNode(mesh2->getMesh(0), 0, -1, 1024);
 		plateSceneNode = smgrFor3D->addMeshSceneNode(plateMesh->getMesh(0));
 		plateSceneNode->setMaterialFlag(EMF_LIGHTING, false);
-		//plateSceneNode->setPosition(core::vector3df(0, 2, 0));
-		plateSceneNode->setScale(vector3df(2, 2, 3));
+		plateSceneNode->setPosition(core::vector3df(0, -0.8, 0));
+		plateSceneNode->setScale(vector3df(2, 17, 3));
 	}
 
 	// Add ball as child to plate
@@ -200,7 +201,7 @@ int main() {
 	camera->setTarget(core::vector3df(10, 15, 0));
 	setActiveCamera(camera);
 
-
+	wchar_t buffer[50] = L"";
 	while (deviceFor2D->run() && deviceFor3D->run())
 	{
 
@@ -244,6 +245,17 @@ int main() {
 
 		if (changeButton->isPressed()) {
 			// Some magic here xD
+			float arr[6] = {};
+			arr[0] = std::wcstof(px->getText(), NULL);
+			arr[1] = std::wcstof(ix->getText(), NULL);
+			arr[2] = std::wcstof(dx->getText(), NULL);
+			arr[3] = std::wcstof(py->getText(), NULL);
+			arr[4] = std::wcstof(iy->getText(), NULL);
+			arr[5] = std::wcstof(dy->getText(), NULL);
+
+			sendPID(arr);
+
+
 			changeButton->setPressed(false);
 		}
 
