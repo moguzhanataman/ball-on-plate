@@ -233,6 +233,8 @@ int main() {
 		driverFor2D->beginScene(true, true, video::SColor(200, 41, 57, 85));
 		driverFor3D->beginScene(true, true, SColor(255, 41, 57, 85));
 
+		printRuler(driverFor2D);
+
 		driverFor2D->enableMaterial2D();
 		driverFor2D->draw2DPolygon(mouseReceiver.GetMouseState().Position, 20, video::SColor(10, 10, 10, 10), 100000);
 		driverFor2D->draw2DPolygon(mouseReceiver.GetMouseState().Position, 1, video::SColor(244, 0, 0, 0), 4);
