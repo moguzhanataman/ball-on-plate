@@ -125,7 +125,7 @@ int main() {
 	deviceFor2D->setWindowCaption(L"Ball on Plate - 2D");
 
 
-	IGUIButton* firstButton = guienvFor2D->addButton(core::rect<s32>(ResX + 140, 140, ResX + 200, 160), 0, -1, L"Change");
+	IGUIButton* changeButton = guienvFor2D->addButton(core::rect<s32>(ResX + 140, 140, ResX + 200, 160), 0, -1, L"Change");
 
 	IGUIStaticText* pxText = guienvFor2D->addStaticText(L"px: ", core::rect<s32>(ResX + 20, 35, ResX + 40, 50));
 	IGUIEditBox* px = guienvFor2D->addEditBox(L"px", core::rect<s32>(ResX + 40, 20, ResX + 100, 60));
@@ -213,19 +213,15 @@ int main() {
 		if (receiverForPlate.IsKeyDown(irr::KEY_KEY_A)) {
 			plateRotation.X += 0.3;
 		}
-		//			nodePosition.Y += MOVEMENT_SPEED * frameDeltaTime;
 		else if (receiverForPlate.IsKeyDown(irr::KEY_KEY_D)) {
 			plateRotation.X -= 0.3;
 		}
-		//		nodePosition.Y -= MOVEMENT_SPEED * frameDeltaTime;
 		else if (receiverForPlate.IsKeyDown(irr::KEY_KEY_W)) {
 			plateRotation.Z += 0.3;
 		}
-		//	nodePosition.X -= MOVEMENT_SPEED * frameDeltaTime;
 		else if (receiverForPlate.IsKeyDown(irr::KEY_KEY_S)) {
 			plateRotation.Z -= 0.3;
 		}
-		//nodePosition.X += MOVEMENT_SPEED * frameDeltaTime;
 		plateModelSceneNode->setPosition(platePosition);
 		plateModelSceneNode->setRotation(plateRotation);
 
@@ -235,15 +231,20 @@ int main() {
 
 		printRuler(driverFor2D);
 
+
+
+
+
 		driverFor2D->enableMaterial2D();
-		driverFor2D->draw2DPolygon(mouseReceiver.GetMouseState().Position, 20, video::SColor(10, 10, 10, 10), 100000);
-		driverFor2D->draw2DPolygon(mouseReceiver.GetMouseState().Position, 1, video::SColor(244, 0, 0, 0), 4);
+		driverFor2D->draw2DPolygon(mouseReceiver.GetMouseState().Position, 20, video::SColor(10, 74, 162, 226), 100000);
+		driverFor2D->draw2DPolygon(mouseReceiver.GetMouseState().Position, 1, video::SColor(244, 74, 162, 226), 4);
 		driverFor2D->draw2DRectangleOutline(core::recti(20, 20, ResX - 20, ResY - 20));
 		driverFor2D->draw2DRectangleOutline(core::recti(40, 40, ResX - 40, ResY - 40), video::SColor(255, 255, 50, 80));
 		driverFor2D->enableMaterial2D(false);
 
-		if (firstButton->isPressed()) {
-			firstButton->setPressed(false);
+		if (changeButton->isPressed()) {
+			// Some magic here xD
+			changeButton->setPressed(false);
 		}
 
 		smgrFor3D->drawAll();
