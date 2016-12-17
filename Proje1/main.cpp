@@ -17,32 +17,24 @@ using namespace video;
 using namespace io;
 using namespace gui;
 using namespace std;
+using namespace irr;
 
 #ifdef _IRR_WINDOWS_
 #pragma comment(lib, "Irrlicht.lib")
 #pragma comment(linker, "/subsystem:windows /ENTRY:mainCRTStartup")
 #endif
 
-using namespace irr;
+
+/* ======= Global Variables ======= */
 const int ResX = 640;
 const int ResY = 480;
-
 IrrlichtDevice *deviceFor3D = 0;
 
-void setActiveCamera(scene::ICameraSceneNode* newActive)
-{
-	if (0 == deviceFor3D)
-		return;
-
-	scene::ICameraSceneNode * active = deviceFor3D->getSceneManager()->getActiveCamera();
-	active->setInputReceiverEnabled(false);
-
-	newActive->setInputReceiverEnabled(true);
-	deviceFor3D->getSceneManager()->setActiveCamera(newActive);
-}
-
+/* ======= Prototypes ======= */
+void setActiveCamera(scene::ICameraSceneNode*);
 void printRuler(video::IVideoDriver*);
 
+/* ======= Main ======= */
 int main() {
 
 	MouseEventReceiverFor2D mouseReceiver;
@@ -265,6 +257,16 @@ int main() {
 	return 0;
 }
 
+void setActiveCamera(scene::ICameraSceneNode* newActive) {
+	if (0 == deviceFor3D)
+		return;
+
+	scene::ICameraSceneNode * active = deviceFor3D->getSceneManager()->getActiveCamera();
+	active->setInputReceiverEnabled(false);
+
+	newActive->setInputReceiverEnabled(true);
+	deviceFor3D->getSceneManager()->setActiveCamera(newActive);
+}
 
 /**********************************************************
  * printRuler
