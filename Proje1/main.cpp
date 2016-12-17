@@ -41,7 +41,7 @@ int main() {
 	MouseEventReceiverFor2D mouseReceiver;
 	MouseEventReceiverFor3D receiverForPlate;
 
-	deviceFor3D = createDevice(irr::video::EDT_OPENGL, dimension2d<u32>(ResX, ResY), 16, false, false, false, &receiverForPlate);
+	deviceFor3D = createDevice(irr::video::EDT_OPENGL, dimension2d<u32>(ResX, ResY), 16, false, true, false, &receiverForPlate);
 	IrrlichtDevice* deviceFor2D = createDevice(video::E_DRIVER_TYPE::EDT_BURNINGSVIDEO,
 		core::dimension2d<u32>(1.5*ResX, 1.5*ResY), 16, false, false, false, &mouseReceiver);
 
@@ -152,35 +152,47 @@ int main() {
 
 	// Create Plate
 	IAnimatedMesh* plateMesh = smgrFor3D->getMesh("assets/RealPlate/plate3.obj");
-	ISceneNode* plateSceneNode = 0;
+	IMeshSceneNode* plateSceneNode = 0;
 	if (plateMesh)
 	{
 		//node2 = smgr->addOctreeSceneNode(mesh2->getMesh(0), 0, -1, 1024);
 		plateSceneNode = smgrFor3D->addMeshSceneNode(plateMesh->getMesh(0));
-		plateSceneNode->setMaterialFlag(EMF_LIGHTING, false);
+		plateSceneNode->setMaterialFlag(EMF_LIGHTING, true);
 		plateSceneNode->setPosition(core::vector3df(0, -0.8, 0));
 		plateSceneNode->setScale(vector3df(2, 17, 3));
+
+	    plateSceneNode->addShadowVolumeSceneNode();
 	}
 
 	// Add ball as child to plate
 	plateModelSceneNode->addChild(plateSceneNode);
 
 	// Create Ball
-	IAnimatedMesh* ballMesh = smgrFor3D->getMesh("assets/Ball/ball.obj");
-	ISceneNode* ballSceneNode = 0;
+	IAnimatedMesh* ballMesh = smgrFor3D->getMesh("assets/Ball/ball2.obj");
+	IMeshSceneNode* ballSceneNode = 0;
 	if (ballMesh)
 	{
 		//node2 = smgr->addOctreeSceneNode(mesh2->getMesh(0), 0, -1, 1024);
 		ballSceneNode = smgrFor3D->addMeshSceneNode(ballMesh->getMesh(0));
-		ballSceneNode->setMaterialFlag(EMF_LIGHTING, false);
+		ballSceneNode->setMaterialFlag(EMF_LIGHTING, true);
 		ballSceneNode->setPosition(core::vector3df(0, 2, 0));
 		ballSceneNode->setScale(vector3df(2, 2, 2));
+
+
+	    ballSceneNode->addShadowVolumeSceneNode();
+
 	}
+
+	smgrFor3D->setShadowColor(video::SColor(150,0,0,0));
+
+	//light
+	smgrFor3D->addLightSceneNode(0, core::vector3df(20,20,20), video::SColorf(1.0f, 1.0f, 1.0f, 1.0f), 1800.0f);
+
 
 	scene::ISceneNode* cylinderSceneNode = smgrFor3D->addCubeSceneNode();
 	cylinderSceneNode->setPosition(core::vector3df(1, -11, 0.2));
 	cylinderSceneNode->setScale(vector3df(0.3, 2, 0.3));
-	cylinderSceneNode->setMaterialFlag(EMF_LIGHTING, false);
+	cylinderSceneNode->setMaterialFlag(EMF_LIGHTING, true);
 	//cylinderSceneNode->setMD2Animation(scene::EMAT_STAND);
 	cylinderSceneNode->setMaterialTexture(0, driverFor3D->getTexture("assets/Cylinder/Cylinder.jpg"));
 	// Add ball as child to plate
@@ -200,6 +212,7 @@ int main() {
 	camera->setFarValue(20000.f);
 	camera->setTarget(core::vector3df(10, 15, 0));
 	setActiveCamera(camera);
+	camera->setFarValue(10000.0f);
 
 	wchar_t buffer[50] = L"";
 	while (deviceFor2D->run() && deviceFor3D->run())
