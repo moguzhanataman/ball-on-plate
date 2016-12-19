@@ -5,19 +5,19 @@ Ka 1.000000 1.000000 1.000000
 Kd 1.000000 1.000000 1.000000
 Ks 1.000000 1.000000 1.000000
 Ke 0.000000 0.000000 0.000000
-0.000000map_Kd c:\users\aliya\onedrive\belgeler\github\ball-on-plate\proje1\assets\room\bright_wooden_floor_texture__tileable___2048x2048__by_fabooguy-d6z6f7n.jpg
+0.000000map_Kd ./room/floor_texture.jpg 
 
 newmtl mat1
 Ka 1.000000 1.000000 1.000000
 Kd 1.000000 1.000000 1.000000
 Ks 1.000000 1.000000 1.000000
 Ke 0.000000 0.000000 0.000000
-0.000000map_Kd c:\users\aliya\onedrive\belgeler\github\ball-on-plate\proje1\assets\room\ceiling.jpg
+0.000000map_Kd ./room/ceiling.jpg 
 
 newmtl mat2
 Ka 1.000000 1.000000 1.000000
 Kd 1.000000 1.000000 1.000000
 Ks 1.000000 1.000000 1.000000
 Ke 0.000000 0.000000 0.000000
-0.000000map_Kd c:\users\aliya\onedrive\belgeler\github\ball-on-plate\proje1\assets\room\color-wall-texture-home-design-ideas-interior-decorations-tips-model-homes-wall-color-379x240.jpg
+0.000000map_Kd ./room/floor_texture.jpg 
 
