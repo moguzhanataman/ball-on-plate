@@ -4,12 +4,10 @@ bool init_serial(){
 	
 	char mode[]={'8','N','1',0};
 	
-	if(RS232_OpenComport(COM_PORT, BD_RATE, mode))
+	if(RS232_OpenComport(COM_PORT, BD_RATE, mode) == 1)
 			
 		return false;
 	
-	RS232_flushRX(COM_PORT);
-
 	return true;	
 }
 
@@ -34,15 +32,15 @@ bool sendBuf(char *buf, int size){
 	
 		return false;
 		
-	RS232_flushTX(COM_PORT);
-	
 	return true;
 }
 
 bool sendPID(float* pid){
 	//TODO ayrı ayrı yollanabilir?
 	int buf_size = sizeof(float)*6 + 1;
-	char buf[buf_size] = {1};
+	char buf[buf_size];
+	
+	buf[0] = '1';
 	
 	memcpy(buf+1, pid, buf_size-1);
 	
@@ -52,7 +50,9 @@ bool sendPID(float* pid){
 bool sendSetpoints(float x, float y){
 	
 	int buf_size = 9;
-	char buf[buf_size]={0};
+	char buf[buf_size];
+	
+	buf[0] = '0';
 		
 	memcpy(buf+1, &x, 4);
 	memcpy(buf+5, &y, 4);
@@ -74,4 +74,9 @@ bool getCoordinates(int16_t* x, int16_t* y, float* servo_x, float* servo_y){
 	memcpy(servo_y, buf+8,4);
 		
 	return true;	
+}
+
+void close_serial(){
+
+	RS232_CloseComport(COM_PORT);
 }
