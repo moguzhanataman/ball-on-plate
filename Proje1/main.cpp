@@ -245,18 +245,20 @@ int main() {
 	while (deviceFor2D->run() && deviceFor3D->run())
 	{
         
+   
 		core::vector3df platePosition = plateModelSceneNode->getPosition();
 		core::vector3df plateRotation = plateModelSceneNode->getRotation();
-		core::vector3df ballPosition = plateModelSceneNode->getPosition();
+		core::vector3df ballPosition = ballSceneNode->getPosition();
 
         coord = getCoordinates(&x, &y, &servo_x, &servo_y);
         if (coord) {
-            ballPosition.X += 0.1 * x;
-            ballPosition.Y += 0.1 * y;
-            plateModelSceneNode->setPosition(ballPosition);
+            cout << x << " " << y << endl;
+            ballPosition.X =  x;
+            ballPosition.Z = y;
+            ballSceneNode->setPosition(ballPosition);
         }
-		ballSceneNode->setPosition(core::vector3df(-15.0 + (double)mouseReceiver.GetMouseState().Position.Y * (30.0 / ResY), 2.0,
-			-23.0 + (double)mouseReceiver.GetMouseState().Position.X * (46.0 / ResX)));
+		//ballSceneNode->setPosition(core::vector3df(-15.0 + (double)mouseReceiver.GetMouseState().Position.Y * (30.0 / ResY), 2.0,
+			//-23.0 + (double)mouseReceiver.GetMouseState().Position.X * (47.0 / ResX)));
 
 		if (receiverForPlate.IsKeyDown(irr::KEY_KEY_A)) {
 			plateRotation.X += 0.3;
