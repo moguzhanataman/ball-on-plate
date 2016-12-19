@@ -30,6 +30,7 @@ using namespace irr;
 const int ResX = 640;
 const int ResY = 480;
 IrrlichtDevice *deviceFor3D = 0;
+f32 cameraDistance = 30000.f;
 
 /* ======= Prototypes ======= */
 void setActiveCamera(scene::ICameraSceneNode*);
@@ -192,29 +193,79 @@ int main() {
 	cylinderSceneNode->setPosition(core::vector3df(1, -11, 0.2));
 	cylinderSceneNode->setScale(vector3df(0.3, 2, 0.3));
 	cylinderSceneNode->setMaterialFlag(EMF_LIGHTING, true);
-	//cylinderSceneNode->setMD2Animation(scene::EMAT_STAND);
 	cylinderSceneNode->setMaterialTexture(0, driverFor3D->getTexture("assets/Cylinder/Cylinder.jpg"));
 	// Add ball as child to plate
 	plateModelSceneNode->addChild(ballSceneNode);
 
 
-	// Alat plaka
-	scene::ISceneNode* lowerPlate = smgrFor3D->addCubeSceneNode();
-	if (plateSceneNode) {
-		lowerPlate->setScale(vector3df(4, 0.1, 4));
-	}
-	lowerPlate->setPosition(core::vector3df(1, -22, 0.2));
 
+	// servo first
+	scene::ISceneNode* firstServo = smgrFor3D->addCubeSceneNode();
+	if (firstServo) {
+		firstServo->setScale(vector3df(0.5, 0.5, 0.5));
+		firstServo->setMaterialTexture(0, driverFor3D->getTexture("assets/Cylinder/Cylinder.jpg"));
+	}
+	firstServo->setPosition(core::vector3df(12, -20, 0));
+
+
+	// second first
+	scene::ISceneNode* secondServo = smgrFor3D->addCubeSceneNode();
+	if (secondServo) {
+		secondServo->setScale(vector3df(0.5, 0.5, 0.5));
+		secondServo->setMaterialTexture(0, driverFor3D->getTexture("assets/Cylinder/Cylinder.jpg"));
+	}
+	secondServo->setPosition(core::vector3df(0, -20, -20));
+
+
+
+
+	// Alt plaka
+	scene::ISceneNode* lowerPlate = smgrFor3D->addCubeSceneNode();
+	if (lowerPlate) {
+		lowerPlate->setScale(vector3df(3.5, 0.1, 4.7));
+	}
+	lowerPlate->setPosition(core::vector3df(-2, -22, 0.2));
+	
 
 	smgrFor3D->addCameraSceneNode(0, vector3df(0, 30, -40), vector3df(0, 5, 0));
 	scene::ICameraSceneNode *camera = smgrFor3D->addCameraSceneNodeMaya(0, -100.0f, 100.0f, 100.0f);
-	camera->setFarValue(20000.f);
+	camera->setFarValue(cameraDistance);
 	camera->setTarget(core::vector3df(10, 15, 0));
 	setActiveCamera(camera);
 
 	float arr[6] = {};
 
-	camera->setFarValue(10000.0f);
+
+	double firstServoLength = 2.1;
+	// first servo arm
+	scene::ISceneNode* firstArm = smgrFor3D->addCubeSceneNode();
+	firstArm->setPosition(core::vector3df(14, -12, 0));
+	firstArm->setScale(vector3df(0.05, firstServoLength, 0.05));
+	firstArm->setMaterialFlag(EMF_LIGHTING, true);
+	
+
+	double secondServoLength = 2.1;
+	// second servo arm
+	scene::ISceneNode* secondArm = smgrFor3D->addCubeSceneNode();
+	secondArm->setPosition(core::vector3df(0, -12, -22));
+	secondArm->setScale(vector3df(0.05, secondServoLength, 0.05));
+	secondArm->setMaterialFlag(EMF_LIGHTING, true);
+
+	
+
+
+	// Create table
+	IAnimatedMesh* tableMesh = smgrFor3D->getMesh("assets/table/table.3ds");
+	IMeshSceneNode* tableSceneNode = 0;
+	if (tableMesh)
+	{
+		//node2 = smgr->addOctreeSceneNode(mesh2->getMesh(0), 0, -1, 1024);
+		tableSceneNode = smgrFor3D->addMeshSceneNode(tableMesh->getMesh(0));
+		tableSceneNode->setMaterialFlag(EMF_LIGHTING, false);
+		tableSceneNode->setMaterialFlag(E_MATERIAL_FLAG::EMF_COLOR_MATERIAL, false);
+		tableSceneNode->setPosition(core::vector3df(1, -28, 0.2));
+		tableSceneNode->setScale(vector3df(0.2, 0.3, 0.3));
+	}
 
 	
 	IAnimatedMesh* roommesh = smgrFor3D->getMesh("assets/kappa.obj");
@@ -224,8 +275,8 @@ int main() {
 		
 		roomNode = smgrFor3D->addMeshSceneNode(roommesh->getMesh(0));
 		roomNode->setMaterialFlag(EMF_LIGHTING, false);
-		roomNode->setPosition(core::vector3df(-30, -30, -30));
-		roomNode->setScale(vector3df(1, 1, 1));
+		roomNode->setPosition(core::vector3df(-10, 40, -10));
+		roomNode->setScale(vector3df(6, 3.5, 5));
 	}
 
 
@@ -242,16 +293,26 @@ int main() {
 		core::vector3df plateRotation = plateModelSceneNode->getRotation();
 		if (receiverForPlate.IsKeyDown(irr::KEY_KEY_A)) {
 			plateRotation.X += 0.3;
+			secondServoLength += 0.012;
+			secondArm->setScale(vector3df(0.05, secondServoLength, 0.05));
 		}
 		else if (receiverForPlate.IsKeyDown(irr::KEY_KEY_D)) {
 			plateRotation.X -= 0.3;
+			secondServoLength -= 0.012;
+			secondArm->setScale(vector3df(0.05, secondServoLength, 0.05));
 		}
 		else if (receiverForPlate.IsKeyDown(irr::KEY_KEY_W)) {
 			plateRotation.Z += 0.3;
+			firstServoLength += 0.012;
+			firstArm->setScale(vector3df(0.05, firstServoLength, 0.05));
 		}
 		else if (receiverForPlate.IsKeyDown(irr::KEY_KEY_S)) {
 			plateRotation.Z -= 0.3;
+			firstServoLength -= 0.012;
+			firstArm->setScale(vector3df(0.05, firstServoLength, 0.05));
 		}
+
+
 		plateModelSceneNode->setPosition(platePosition);
 		plateModelSceneNode->setRotation(plateRotation);
 
