@@ -216,6 +216,20 @@ int main() {
 
 	camera->setFarValue(10000.0f);
 
+	/*
+	IAnimatedMesh* roommesh = smgrFor3D->getMesh("assets/kappa.obj");
+	ISceneNode* roomNode = 0;
+	if (roommesh)
+	{
+		
+		roomNode = smgrFor3D->addMeshSceneNode(roommesh->getMesh(0));
+		roomNode->setMaterialFlag(EMF_LIGHTING, false);
+		roomNode->setPosition(core::vector3df(-30, -30, -30));
+		roomNode->setScale(vector3df(1, 1, 1));
+	}
+
+
+	*/
 	wchar_t buffer[50] = L"";
 	while (deviceFor2D->run() && deviceFor3D->run())
 	{
@@ -247,22 +261,9 @@ int main() {
 
 		printRuler(driverFor2D);
 
-		/*
+	
 
-		IAnimatedMesh* roommesh = smgrFor3D->getMesh("assets/interior/interior.obj");
-
-
-		ISceneNode* roomNode = 0;
-		if (roommesh)
-		{
-			//node2 = smgr->addOctreeSceneNode(mesh2->getMesh(0), 0, -1, 1024);
-			roomNode = smgrFor3D->addMeshSceneNode(roommesh->getMesh(0));
-			roomNode->setMaterialFlag(EMF_LIGHTING, false);
-			roomNode->setPosition(core::vector3df(-30, -30, -30));
-			roomNode->setScale(vector3df(1, 1, 1));
-		}
-		*/
-
+	
 
 		driverFor2D->enableMaterial2D();
 		driverFor2D->draw2DPolygon(mouseReceiver.GetMouseState().Position, 20, video::SColor(10, 74, 162, 226), 100000);
