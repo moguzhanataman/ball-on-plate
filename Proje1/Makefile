@@ -5,7 +5,7 @@
 # Name of the executable created (.exe will be added automatically if necessary)
 Target := ball-on-plate 
 # List of source files, separated by spaces
-Sources := main.cpp rs232.c serial.cpp
+Sources := main.cpp serial/rs232.c serial/serial.cpp
 # Path to Irrlicht directory, should contain include/ and lib/
 IrrlichtHome := ~/irrlicht-1.8.4/
 # Path for the executable. Note that Irrlicht.dll should usually also be there for win32 systems

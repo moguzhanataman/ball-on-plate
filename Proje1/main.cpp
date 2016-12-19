@@ -9,7 +9,8 @@
 #include <rect.h>
 #include "src/EventReceivers/Mouse2D.cpp"
 #include "src/EventReceivers/Mouse3D.cpp"
-#include "serial.h"
+#include "serial/serial.h"
+#include <signal.h>
 
 using namespace irr;
 using namespace core;
@@ -34,10 +35,19 @@ IrrlichtDevice *deviceFor3D = 0;
 /* ======= Prototypes ======= */
 void setActiveCamera(scene::ICameraSceneNode*);
 void printRuler(video::IVideoDriver*);
-
+void signal_handler(int sig) {
+    close_serial();
+    exit(0);
+}
 /* ======= Main ======= */
 int main() {
+    signal(SIGINT, signal_handler);
 
+    if (!init_serial()) {
+        std::cerr << "Serial port initialization error\n";
+        exit(1);
+    }
+    
 	MouseEventReceiverFor2D mouseReceiver;
 	MouseEventReceiverFor3D receiverForPlate;
 
@@ -228,18 +238,23 @@ int main() {
 		roomNode->setScale(vector3df(1, 1, 1));
 	}
 
-
-	
+	int16_t x, y;
+    float servo_x, servo_y;
+    bool coord;
 	wchar_t buffer[50] = L"";
 	while (deviceFor2D->run() && deviceFor3D->run())
 	{
+		core::vector3df platePosition = plateModelSceneNode->getPosition();
+		core::vector3df plateRotation = plateModelSceneNode->getRotation();
 
+        coord = getCoordinates(&x, &y, &servo_x, &servo_y);
+        if (coord) {
+            plateModelSceneNode->setPosition(platePosition);
+            plateModelSceneNode->setRotation(plateRotation);
+        }
 		ballSceneNode->setPosition(core::vector3df(-15.0 + (double)mouseReceiver.GetMouseState().Position.Y * (30.0 / ResY), 2.0,
 			-23.0 + (double)mouseReceiver.GetMouseState().Position.X * (46.0 / ResX)));
 
-
-		core::vector3df platePosition = plateModelSceneNode->getPosition();
-		core::vector3df plateRotation = plateModelSceneNode->getRotation();
 		if (receiverForPlate.IsKeyDown(irr::KEY_KEY_A)) {
 			plateRotation.X += 0.3;
 		}
