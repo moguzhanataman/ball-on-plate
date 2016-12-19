@@ -251,6 +251,7 @@ int main() {
 
         coord = getCoordinates(&x, &y, &servo_x, &servo_y);
         if (coord) {
+			cerr << x << " " << y << endl;
             ballPosition.X += 0.1 * x;
             ballPosition.Y += 0.1 * y;
             plateModelSceneNode->setPosition(ballPosition);
