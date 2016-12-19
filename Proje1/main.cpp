@@ -211,12 +211,11 @@ int main() {
 	camera->setFarValue(20000.f);
 	camera->setTarget(core::vector3df(10, 15, 0));
 	setActiveCamera(camera);
-<<<<<<< HEAD
+
 	float arr[6] = {};
-=======
+
 	camera->setFarValue(10000.0f);
 
->>>>>>> origin/master
 	wchar_t buffer[50] = L"";
 	while (deviceFor2D->run() && deviceFor3D->run())
 	{
