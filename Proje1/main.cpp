@@ -249,6 +249,8 @@ int main() {
 
         coord = getCoordinates(&x, &y, &servo_x, &servo_y);
         if (coord) {
+            platePosition.X = 0.001 * x;
+            platePosition.Y = 0.001 * y;
             plateModelSceneNode->setPosition(platePosition);
             plateModelSceneNode->setRotation(plateRotation);
         }
