@@ -244,7 +244,10 @@ int main() {
 	wchar_t buffer[50] = L"";
 	while (deviceFor2D->run() && deviceFor3D->run())
 	{
-		core::vector3df ballPosition = ballSceneNode->getPosition();
+        
+		core::vector3df platePosition = plateModelSceneNode->getPosition();
+		core::vector3df plateRotation = plateModelSceneNode->getRotation();
+		core::vector3df ballPosition = plateModelSceneNode->getPosition();
 
         coord = getCoordinates(&x, &y, &servo_x, &servo_y);
         if (coord) {
