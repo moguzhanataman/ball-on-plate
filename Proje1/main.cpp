@@ -216,7 +216,7 @@ int main() {
 
 	camera->setFarValue(10000.0f);
 
-	/*
+	
 	IAnimatedMesh* roommesh = smgrFor3D->getMesh("assets/kappa.obj");
 	ISceneNode* roomNode = 0;
 	if (roommesh)
@@ -229,7 +229,7 @@ int main() {
 	}
 
 
-	*/
+	
 	wchar_t buffer[50] = L"";
 	while (deviceFor2D->run() && deviceFor3D->run())
 	{
