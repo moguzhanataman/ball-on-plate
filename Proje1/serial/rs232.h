@@ -30,6 +30,10 @@
 /* For more info and how to use this library, visit: http://www.teuniz.net/RS-232/ */
 
 
+#ifdef _MSC_VER
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #ifndef rs232_INCLUDED
 #define rs232_INCLUDED
 
@@ -59,6 +63,7 @@ extern "C" {
 #include <windows.h>
 
 #endif
+
 
 int RS232_OpenComport(int, int, const char *);
 int RS232_PollComport(int, unsigned char *, int);

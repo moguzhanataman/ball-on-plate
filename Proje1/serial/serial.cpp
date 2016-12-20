@@ -1,5 +1,6 @@
 #include "serial.h"
 
+
 bool init_serial(){
 	
 	char mode[]={'8','N','1',0};
@@ -38,7 +39,7 @@ bool sendBuf(char *buf, int size){
 bool sendPID(float* pid){
 	//TODO ayrı ayrı yollanabilir?
 	int buf_size = sizeof(float)*6 + 1;
-	char buf[buf_size];
+	char buf[25];
 	
 	buf[0] = '1';
 	
@@ -50,7 +51,7 @@ bool sendPID(float* pid){
 bool sendSetpoints(float x, float y){
 	
 	int buf_size = 9;
-	char buf[buf_size];
+	char buf[9];
 	
 	buf[0] = '0';
 		
@@ -63,7 +64,7 @@ bool sendSetpoints(float x, float y){
 bool getCoordinates(int16_t* x, int16_t* y, float* servo_x, float* servo_y){
 
 	int buf_size = 12;
-	char buf[buf_size]; 
+	char buf[12]; 
 	
 	if(readBuf(buf, buf_size) == false)
 		return false;
