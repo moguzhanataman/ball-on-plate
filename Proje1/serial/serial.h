@@ -20,6 +20,8 @@
 
 //serial portu initilize eder
 bool init_serial();
+//serial portu kapatır
+void close_serial(); 
 /**
  * serial porttan buffer okur.
  * @param buf: karakter bufferı
