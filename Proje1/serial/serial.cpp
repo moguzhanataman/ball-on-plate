@@ -15,9 +15,9 @@ bool readBuf(char *buf, int size){
 	
 	int n=0;
 	
-	while(n != size){
+	while(n < size){
 		
-		n += RS232_PollComport(COM_PORT, ((unsigned char*)buf)+n, 1);
+		n += RS232_PollComport(COM_PORT, ((unsigned char*)buf)+n, size-n);
 		
 		if(n == 0)
 			return false;
