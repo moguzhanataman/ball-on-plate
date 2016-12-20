@@ -41,7 +41,7 @@ void signal_handler(int sig) {
 	exit(0);
 }
 
-long map(long x, long in_min, long in_max, long out_min, long out_max)
+long mapping(long x, long in_min, long in_max, long out_min, long out_max)
 {
 	return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
@@ -299,19 +299,23 @@ int main() {
 
 	int16_t x, y;
 	float servo_x, servo_y;
-	bool coord;
 	wchar_t buffer[50] = L"";
 	while (deviceFor2D->run() && deviceFor3D->run())
 	{
 
+	/*	
 		ballSceneNode->setPosition(core::vector3df(-15.0 + (double)mouseReceiver.GetMouseState().Position.Y * (30.0 / ResY), 2.0,
-			-23.0 + (double)mouseReceiver.GetMouseState().Position.X * (46.0 / ResX)));
-
+			-23.0 + (double)mouseReceiver.GetMouseState().Position.X * (46.0 / ResX))); 
+	*/
 
 		core::vector3df platePosition = plateModelSceneNode->getPosition();
 		core::vector3df plateRotation = plateModelSceneNode->getRotation();
 
-
+		if (getCoordinates(&x, &y, &servo_x, &servo_y)) {
+			mouseReceiver.MouseState.Position = core::position2di((mapping(x, 200, 800, 40, ResX - 40), mapping(y, 200, 600, 40, ResY - 40)));
+			core::vector3df ballPosition = core::vector3df(mouseReceiver.MouseState.Position.Y,2.0,mouseReceiver.MouseState.Position.X);
+			ballSceneNode->setPosition(ballPosition);
+		}
 
 		if (receiverForPlate.IsKeyDown(irr::KEY_KEY_A)) {
 			plateRotation.X += 0.3;

@@ -8,7 +8,7 @@
 
 #ifdef _WIN32
 #include <Windows.h>
-#define COM_PORT 4
+#define COM_PORT 3
 #else
 #include <unistd.h>
 #define COM_PORT 24
