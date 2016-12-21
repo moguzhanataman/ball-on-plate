@@ -329,7 +329,8 @@ int main() {
 	int16_t x=150, y=140;
 	float servo_x=90, servo_y=90;
 	wchar_t buffer[50] = L"";
-	
+	core::position2di lastPos = mouseReceiver.GetMouseState().Position;
+	double buffPosX=0, buffPosY=0;
 	while (deviceFor2D->run() && deviceFor3D->run())
 	{
 		start = std::clock();
@@ -347,6 +348,13 @@ int main() {
 		}
 		
 		
+		if (lastPos != mouseReceiver.GetMouseState().Position) {
+			lastPos = mouseReceiver.GetMouseState().Position;
+			buffPosX = mapping(lastPos.X, 40, ResX - 40, 160, 910);
+			buffPosY = mapping(lastPos.Y, 40, ResY - 40, 190, 880);
+			sendSetpoints(buffPosX, buffPosY);
+		}
+
 		plateRotation.Z = calculateRotation(servo_x, 16);
 		firstServoLength = (double)mapping(servo_x, 90, 180, 2.1, 2.388);
 
@@ -376,20 +384,7 @@ int main() {
 		driverFor2D->draw2DRectangleOutline(core::recti(40, 40, ResX - 40, ResY - 40), video::SColor(255, 255, 50, 80));
 		driverFor2D->enableMaterial2D(false);
 
-		if (changeButton->isPressed()) {
-			
-			arr[0] = std::wcstof(px->getText(), NULL);
-			arr[1] = std::wcstof(ix->getText(), NULL);
-			arr[2] = std::wcstof(dx->getText(), NULL);
-			arr[3] = std::wcstof(py->getText(), NULL);
-			arr[4] = std::wcstof(iy->getText(), NULL);
-			arr[5] = std::wcstof(dy->getText(), NULL);
-
-			//sendPID(arr);
-
-
-			changeButton->setPressed(false);
-		}
+		
 
 		smgrFor3D->drawAll();
 		guienvFor3D->drawAll();
@@ -400,7 +395,7 @@ int main() {
 		duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
 
 
-		outfile << x << " vs. " << currentPosition.X << " and " << y <<  " and " << currentPosition.Y << endl;
+		//outfile << x << " vs. " << currentPosition.X << " and " << y <<  " and " << currentPosition.Y << endl;
 
 
 		std::cout << "Duration : " << duration << '\n';
