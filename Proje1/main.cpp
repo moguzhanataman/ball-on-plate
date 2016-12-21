@@ -4,6 +4,8 @@
 #pragma comment(lib, "Irrlicht.lib")
 #endif
 
+// #define SERIAL_ON
+
 #include <iostream>
 #include <irrlicht.h>
 #include <rect.h>
@@ -14,9 +16,9 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <fstream>
+#include <wchar.h>
 #include <ctime>
 #include <math.h>
-
 
 using namespace irr;
 using namespace core;
@@ -128,13 +130,14 @@ int main() {
 
 #endif
 	
+#ifdef SERIAL_ON
 	signal(SIGINT, signal_handler);
 
 	if (!init_serial()) {
 		std::cerr << "Serial port initialization error\n";
 		exit(1);
 	}
-
+#endif
 	MouseEventReceiverFor2D mouseReceiver;
 	MouseEventReceiverFor3D receiverForPlate;
 
@@ -241,6 +244,38 @@ int main() {
 
 	IGUIStaticText* iyText = guienvFor2D->addStaticText(L"iy: ", core::rect<s32>(ResX + 230, 95, ResX + 240, 110));
 	IGUIEditBox* iy = guienvFor2D->addEditBox(L"iy", core::rect<s32>(ResX + 250, 80, ResX + 300, 120));
+
+	
+	
+	/* === FONT SETTING (currently not working) === 
+	IGUIFont *font = guienvFor2D->getFont("myfont.xml");
+	if (font) {
+		cout << "********************* Font loaded ***************************";
+	} else {
+		cout << "********************* Font not loaded ***************************";
+	}
+	font->draw(L"TEXT :D YAAAAAAAAY!!!!", rect<s32>(0, 0, 500, 550),SColor(255,255,255,255));
+	*/
+	// 2D Memory Game
+	IGUIStaticText* memoryGameText = guienvFor2D->addStaticText(L"MEMORY GAME", core::rect<s32>(50, 500, 200, 530));
+	
+	IGUIStaticText* trueText = guienvFor2D->addStaticText(L"True: ", core::rect<s32>(50, 530, 100, 550));
+	IGUIStaticText* trueNumberText = guienvFor2D->addStaticText(L"", core::rect<s32>(100, 530, 150, 550));
+	int trueNumber = 0;
+
+	IGUIStaticText* falseText = guienvFor2D->addStaticText(L"False: ", core::rect<s32>(50, 550, 100, 600));
+	IGUIStaticText* falseNumberText = guienvFor2D->addStaticText(L"", core::rect<s32>(100, 550, 150, 600));
+	int falseNumber = 0;
+
+	IGUIButton* startMemoryGameButton = 
+		guienvFor2D->addButton(core::rect<s32>(50, 580, 150, 600), 0, -1, L"Start Memory Game");
+
+	IGUIButton* endMemoryGameButton = 
+		guienvFor2D->addButton(core::rect<s32>(50, 600, 150, 620), 0, -1, L"End Memory Game");
+
+	bool isGameStarted = false;
+	IGUIStaticText* gameStatusText = 
+		guienvFor2D->addStaticText(L"", core::rect<s32>(50, 620, 250, 650));
 
 	// 3D Part
 	// Create Platform
@@ -397,15 +432,19 @@ int main() {
 	int16_t x=150, y=140;
 	float servo_x=90, servo_y=90;
 	wchar_t buffer[50] = L"";
+	wchar_t wstrBuffer[128];
 	core::position2di lastPos = mouseReceiver.GetMouseState().Position;
 	double buffPosX=0, buffPosY=0;
 	while (deviceFor2D->run() && deviceFor3D->run())
 	{
 		start = std::clock();
 
+		trueNumberText->setText(L"TRUE...");
+
 		core::vector3df platePosition = plateModelSceneNode->getPosition();
 		core::vector3df plateRotation = plateModelSceneNode->getRotation();
 
+		#ifdef SERIAL_ON
 		if (getCoordinates(&x, &y, &servo_x, &servo_y)) {
 			double posX, posY;
 			posX = mapping(x, 160, 910, 40, ResX - 40);
@@ -414,7 +453,9 @@ int main() {
 			core::vector3df ballPosition = core::vector3df(currentPosition.X, 2.0 ,currentPosition.Y);
 			//ballSceneNode->setPosition(ballPosition);
 		}
-		
+		#endif
+		cout << x << " " << y << " " << servo_x << " " << servo_y << endl;
+		plateRotation.Z = (double)mapping(servo_x, 90, 180, 0, 6.5);
 		
 		if (lastPos != mouseReceiver.GetMouseState().Position) {
 			lastPos = mouseReceiver.GetMouseState().Position;
@@ -425,6 +466,29 @@ int main() {
 
 		plateRotation.Z = -1 * calculateRotation(servo_y, 12);
 		firstServoLength = (double)mapping(servo_y, 90, 180, 2.1, 2.388);
+
+		/*
+		cout << "Mouse x-> " << (double)mouseReceiver.GetMouseState().Position.X << " and Mouse y -> " 
+				<< (double)mouseReceiver.GetMouseState().Position.Y << endl;
+		*/
+		cout << "X -> " << x << " and Y -> " << y << endl;
+
+		if (startMemoryGameButton->isPressed()) {
+			startMemoryGameButton->setPressed(false);
+			trueNumber = 0;
+			falseNumber = 0;
+			gameStatusText->setText(L"Game started");
+			// trueNumberText->setText(L"0");
+			// falseNumberText->setText(L"0");
+		}
+
+		if (endMemoryGameButton->isPressed()) {
+			endMemoryGameButton->setPressed(false);
+			swprintf(wstrBuffer, 128, L"Game ended you completed with %d true paths and %d false paths", trueNumber, falseNumber);
+			gameStatusText->setText(wstrBuffer);
+			trueNumber = 0;
+			falseNumber = 0;
+		}
 
 
 		plateRotation.X = calculateRotation(servo_x, 16);
