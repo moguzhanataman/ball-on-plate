@@ -9,7 +9,7 @@
 
 #ifdef _WIN32
 #include <Windows.h>
-#define COM_PORT 3
+#define COM_PORT 6
 #else
 #include <unistd.h>
 #define COM_PORT 24

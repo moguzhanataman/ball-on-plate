@@ -1,5 +1,7 @@
 #include "serial.h"
-
+#ifndef DEBUG
+#define DEBUG
+#endif
 
 bool init_serial(){
 	
@@ -18,7 +20,7 @@ bool readBuf(char *buf, int size){
 	
 	while(n != size){
 		
-		n += RS232_PollComport(COM_PORT, ((unsigned char*)buf)+n, 1);
+		n += RS232_PollComport(COM_PORT, ((unsigned char*)buf)+n, size-n);
 		
 		if(n == 0)
 			return false;
@@ -48,17 +50,18 @@ bool sendPID(float* pid){
 	return sendBuf(buf, buf_size);
 }
 
-bool sendSetpoints(float x, float y){
-	
-	int buf_size = 9;
-	char buf[9];
-	
-	buf[0] = '0';
-		
-	memcpy(buf+1, &x, 4);
-	memcpy(buf+5, &y, 4);
-	
-	return sendBuf(buf, buf_size);
+bool sendSetpoints(float x, float y) {
+
+    int buf_size = 9;
+    char buf[9];
+
+#ifdef DEBUG
+    fprintf(stderr, "%.3f %.3f\n", x ,y);
+#endif
+
+    return (RS232_SendBuf(COM_PORT, (unsigned char *) "0", 1) != -1) &&
+           (RS232_SendBuf(COM_PORT, (unsigned char *) &x, 4) != -1) &&
+           (RS232_SendBuf(COM_PORT, (unsigned char *) &y, 4) != -1);
 }
 
 bool getCoordinates(int16_t* x, int16_t* y, float* servo_x, float* servo_y){

@@ -14,8 +14,7 @@
 #include <stdio.h>
 #include <io.h>
 #include <fcntl.h>
-
-
+#include <fstream>
 
 using namespace irr;
 using namespace core;
@@ -46,36 +45,22 @@ void signal_handler(int sig) {
 	exit(0);
 }
 
-long mapping(long x, long in_min, long in_max, long out_min, long out_max)
+
+double mapping(double x, double in_min, double in_max, double out_min, double out_max)
 {
 	return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
-}
-
-int APIENTRY WinMain(HINSTANCE hInstance,
-	HINSTANCE hPrevInstance,
-	LPSTR     lpCmdLine,
-	int       nCmdShow)
-{
-	AllocConsole();
-
-	HANDLE handle_out = GetStdHandle(STD_OUTPUT_HANDLE);
-	int hCrt = _open_osfhandle((long)handle_out, _O_TEXT);
-	FILE* hf_out = _fdopen(hCrt, "w");
-	setvbuf(hf_out, NULL, _IONBF, 1);
-	*stdout = *hf_out;
-
-	HANDLE handle_in = GetStdHandle(STD_INPUT_HANDLE);
-	hCrt = _open_osfhandle((long)handle_in, _O_TEXT);
-	FILE* hf_in = _fdopen(hCrt, "r");
-	setvbuf(hf_in, NULL, _IONBF, 128);
-	*stdin = *hf_in;
-
-	// use the console just like a normal one - printf(), getchar(), ...
 }
 
 /* ======= Main ======= */
 int main() {
 
+	if (AllocConsole() == 0)
+
+		exit(EXIT_FAILURE);
+
+	freopen("CONIN$", "r", stdin);
+	freopen("CONOUT$", "w", stdout);
+	
 	signal(SIGINT, signal_handler);
 
 	if (!init_serial()) {
@@ -105,7 +90,7 @@ int main() {
 	driverFor2D->getMaterial2D().AntiAliasing = video::EAAM_FULL_BASIC;
 
 
-
+	/*
 	IGUIButton* buttonCircle = guienvFor2D->addButton(rect<s32>(20, ResY + 30, 120, ResY + 60 + 32), 0, -1,
 		L"", L"DRAW CIRCLE");
 	buttonCircle->setImage(driverFor2D->getTexture("assets/circle.jpg"));
@@ -118,7 +103,7 @@ int main() {
 	IGUIButton* buttonTriangle = guienvFor2D->addButton(rect<s32>(260, ResY + 30, 360, ResY + 60 + 32), 0, -1,
 		L"", L"DRAW TRIANGLE");
 
-	buttonTriangle->setImage(driverFor2D->getTexture("assets/triangle.jpg"));
+	buttonTriangle->setImage(driverFor2D->getTexture("assets/triangle.jpg"));*/
 
 	IVideoDriver* driverFor3D = deviceFor3D->getVideoDriver();
 	ISceneManager* smgrFor3D = deviceFor3D->getSceneManager();
@@ -297,7 +282,6 @@ int main() {
 
 	
 
-
 	// Create table
 	IAnimatedMesh* tableMesh = smgrFor3D->getMesh("assets/table/table.3ds");
 	IMeshSceneNode* tableSceneNode = 0;
@@ -322,10 +306,14 @@ int main() {
 		roomNode->setPosition(core::vector3df(-10, 40, -10));
 		roomNode->setScale(vector3df(6, 3.5, 5));
 	}
-
-
-	int16_t x, y;
-	float servo_x, servo_y;
+	/*
+	cout << "Mouse x-> " << (double)mouseReceiver.GetMouseState().Position.X << " and Mouse y -> "
+	<< (double)mouseReceiver.GetMouseState().Position.Y << endl;*/
+	
+	//std::ofstream outfile("lul.txt");
+	core::position2di currentPosition = core::position2di(0,0);
+	int16_t x=150, y=140;
+	float servo_x=90, servo_y=90;
 	wchar_t buffer[50] = L"";
 	while (deviceFor2D->run() && deviceFor3D->run())
 	{
@@ -334,19 +322,20 @@ int main() {
 		core::vector3df plateRotation = plateModelSceneNode->getRotation();
 
 		if (getCoordinates(&x, &y, &servo_x, &servo_y)) {
-			mouseReceiver.MouseState.Position = core::position2di((mapping(x, 150, 915, 40, ResX - 40), mapping(y, 140, 896, 40, ResY - 40)));
+			currentPosition = core::position2di((mapping(x, 150, 915, 40, ResX - 40), mapping(y, 140, 896, 40, ResY - 40)));
 			core::vector3df ballPosition = core::vector3df(mouseReceiver.MouseState.Position.Y,2.0,mouseReceiver.MouseState.Position.X);
 			ballSceneNode->setPosition(ballPosition);
 		}
 		
+		/*
 		if (receiverForPlate.IsKeyDown(irr::KEY_KEY_A)) {
-			plateRotation.X += 0.3;
-			secondServoLength += 0.012;
+			//plateRotation.X += 0.3;
+			secondServoLength += 0.021;
 			secondArm->setScale(vector3df(0.05, secondServoLength, 0.05));
 		}
 		else if (receiverForPlate.IsKeyDown(irr::KEY_KEY_D)) {
-			plateRotation.X -= 0.3;
-			secondServoLength -= 0.012;
+			//plateRotation.X -= 0.3;
+			secondServoLength -= 0.021;
 			secondArm->setScale(vector3df(0.05, secondServoLength, 0.05));
 		}
 		else if (receiverForPlate.IsKeyDown(irr::KEY_KEY_W)) {
@@ -358,17 +347,22 @@ int main() {
 			plateRotation.Z -= 0.3;
 			firstServoLength -= 0.012;
 			firstArm->setScale(vector3df(0.05, firstServoLength, 0.05));
-		}
+		}*/
 
-		/*
-		cout << "Mouse x-> " << (double)mouseReceiver.GetMouseState().Position.X << " and Mouse y -> " 
-				<< (double)mouseReceiver.GetMouseState().Position.Y << endl;
-		*/
-		cout << "X -> " << x << " and Y -> " << y << endl;
+		cout << x << " " << y << " " << servo_x << " " << servo_y << endl;
+
+		plateRotation.Z = (double)mapping(servo_x, 90, 180, 0, 6.5);
+		firstServoLength = (double)mapping(servo_x, 90, 180, 2.1, 2.388);
+
+		plateRotation.X = (double)mapping(servo_y, 90, 180, 0, 6.5);
+		secondServoLength = (double)mapping(servo_y, 90, 180, 2.1, 2.604);
+
+		firstArm->setScale(vector3df(0.05, firstServoLength, 0.05));
+		secondArm->setScale(vector3df(0.05, secondServoLength, 0.05));
+
+		//outfile << "first(uzun): " << firstServoLength << " and sec(kisa): " << secondServoLength << endl;
 		
-
-		ballSceneNode->setPosition(core::vector3df(-15.0 + (double)mouseReceiver.GetMouseState().Position.Y * (30.0 / ResY), 2.0,
-			-23.0 + (double)mouseReceiver.GetMouseState().Position.X * (46.0 / ResX)));
+		ballSceneNode->setPosition(core::vector3df(-15.0 + currentPosition.Y * (30.0 / ResY), 2.0, -23.0 + currentPosition.X * (46.0 / ResX)));
 		plateModelSceneNode->setRotation(plateRotation);
 
 		bool movedWithJoystick = false;
@@ -377,9 +371,7 @@ int main() {
 
 		printRuler(driverFor2D);
 
-	
-		
-	
+
 
 		driverFor2D->enableMaterial2D();
 		driverFor2D->draw2DPolygon(mouseReceiver.GetMouseState().Position, 20, video::SColor(10, 74, 162, 226), 100000);
@@ -389,7 +381,7 @@ int main() {
 		driverFor2D->enableMaterial2D(false);
 
 		if (changeButton->isPressed()) {
-			// Some magic here xD
+			
 			arr[0] = std::wcstof(px->getText(), NULL);
 			arr[1] = std::wcstof(ix->getText(), NULL);
 			arr[2] = std::wcstof(dx->getText(), NULL);
