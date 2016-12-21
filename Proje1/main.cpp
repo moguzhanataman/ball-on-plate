@@ -68,12 +68,16 @@ int main() {
 	std::clock_t start;
 	double duration;
 
+#ifdef _WIN32
+	
 	if (AllocConsole() == 0)
 
 		exit(EXIT_FAILURE);
 
 	freopen("CONIN$", "r", stdin);
 	freopen("CONOUT$", "w", stdout);
+
+#endif
 	
 	signal(SIGINT, signal_handler);
 
