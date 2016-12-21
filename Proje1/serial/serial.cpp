@@ -39,7 +39,7 @@ bool sendBuf(char *buf, int size){
 
     return true;
 }
-
+/*
 bool sendPID(float* pid){
 	//TODO ayrı ayrı yollanabilir?
 	int buf_size = sizeof(float)*6 + 1;
@@ -50,12 +50,9 @@ bool sendPID(float* pid){
 	memcpy(buf+1, pid, buf_size-1);
 	
 	return sendBuf(buf, buf_size);
-}
+}*/
 
 bool sendSetpoints(float x, float y) {
-
-    int buf_size = 9;
-    char buf[9];
 
 #ifdef DEBUG
 //    fprintf(stderr, "%.3f %.3f\n", x ,y);
@@ -103,4 +100,9 @@ bool getCoordinates(int16_t* x, int16_t* y, float* servo_x, float* servo_y){
 void close_serial(){
 
 	RS232_CloseComport(COM_PORT);
+}
+
+bool readLeds(char **leds){
+	
+	return readBuf((char*)leds, 48);
 }
