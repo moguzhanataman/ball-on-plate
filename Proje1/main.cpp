@@ -4,6 +4,8 @@
 #pragma comment(lib, "Irrlicht.lib")
 #endif
 
+// #define SERIAL_ON
+
 #include <iostream>
 #include <irrlicht.h>
 #include <rect.h>
@@ -12,7 +14,6 @@
 #include "serial/serial.h"
 #include <signal.h>
 #include <stdio.h>
-#include <io.h>
 #include <fcntl.h>
 #include <fstream>
 
@@ -45,7 +46,6 @@ void signal_handler(int sig) {
 	exit(0);
 }
 
-
 double mapping(double x, double in_min, double in_max, double out_min, double out_max)
 {
 	return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
@@ -53,21 +53,14 @@ double mapping(double x, double in_min, double in_max, double out_min, double ou
 
 /* ======= Main ======= */
 int main() {
-
-	if (AllocConsole() == 0)
-
-		exit(EXIT_FAILURE);
-
-	freopen("CONIN$", "r", stdin);
-	freopen("CONOUT$", "w", stdout);
-	
+	#ifdef SERIAL_ON
 	signal(SIGINT, signal_handler);
 
 	if (!init_serial()) {
 		std::cerr << "Serial port initialization error\n";
 		exit(1);
 	}
-
+	#endif
 	MouseEventReceiverFor2D mouseReceiver;
 	MouseEventReceiverFor3D receiverForPlate;
 
@@ -321,38 +314,26 @@ int main() {
 		core::vector3df platePosition = plateModelSceneNode->getPosition();
 		core::vector3df plateRotation = plateModelSceneNode->getRotation();
 
+		#ifdef SERIAL_ON
 		if (getCoordinates(&x, &y, &servo_x, &servo_y)) {
 			currentPosition = core::position2di((mapping(x, 150, 915, 40, ResX - 40), mapping(y, 140, 896, 40, ResY - 40)));
 			core::vector3df ballPosition = core::vector3df(mouseReceiver.MouseState.Position.Y,2.0,mouseReceiver.MouseState.Position.X);
 			ballSceneNode->setPosition(ballPosition);
 		}
-		
-		/*
-		if (receiverForPlate.IsKeyDown(irr::KEY_KEY_A)) {
-			//plateRotation.X += 0.3;
-			secondServoLength += 0.021;
-			secondArm->setScale(vector3df(0.05, secondServoLength, 0.05));
-		}
-		else if (receiverForPlate.IsKeyDown(irr::KEY_KEY_D)) {
-			//plateRotation.X -= 0.3;
-			secondServoLength -= 0.021;
-			secondArm->setScale(vector3df(0.05, secondServoLength, 0.05));
-		}
-		else if (receiverForPlate.IsKeyDown(irr::KEY_KEY_W)) {
-			plateRotation.Z += 0.3;
-			firstServoLength += 0.012;
-			firstArm->setScale(vector3df(0.05, firstServoLength, 0.05));
-		}
-		else if (receiverForPlate.IsKeyDown(irr::KEY_KEY_S)) {
-			plateRotation.Z -= 0.3;
-			firstServoLength -= 0.012;
-			firstArm->setScale(vector3df(0.05, firstServoLength, 0.05));
-		}*/
 
 		cout << x << " " << y << " " << servo_x << " " << servo_y << endl;
-
+		#endif
 		plateRotation.Z = (double)mapping(servo_x, 90, 180, 0, 6.5);
 		firstServoLength = (double)mapping(servo_x, 90, 180, 2.1, 2.388);
+
+		/*
+		cout << "Mouse x-> " << (double)mouseReceiver.GetMouseState().Position.X << " and Mouse y -> " 
+				<< (double)mouseReceiver.GetMouseState().Position.Y << endl;
+		*/
+		#ifdef SERIAL_ON
+		cout << "X -> " << x << " and Y -> " << y << endl;
+		#endif
+
 
 		plateRotation.X = (double)mapping(servo_y, 90, 180, 0, 6.5);
 		secondServoLength = (double)mapping(servo_y, 90, 180, 2.1, 2.604);
