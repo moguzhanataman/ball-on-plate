@@ -34,8 +34,10 @@ bool sendBuf(char *buf, int size){
 	if(RS232_SendBuf(COM_PORT, (unsigned char*)buf, size) == -1)
 	
 		return false;
-		
-	return true;
+
+    RS232_flushTX(COM_PORT);
+
+    return true;
 }
 
 bool sendPID(float* pid){
@@ -56,12 +58,30 @@ bool sendSetpoints(float x, float y) {
     char buf[9];
 
 #ifdef DEBUG
-    fprintf(stderr, "%.3f %.3f\n", x ,y);
+//    fprintf(stderr, "%.3f %.3f\n", x ,y);
 #endif
 
-    return (RS232_SendBuf(COM_PORT, (unsigned char *) "0", 1) != -1) &&
-           (RS232_SendBuf(COM_PORT, (unsigned char *) &x, 4) != -1) &&
-           (RS232_SendBuf(COM_PORT, (unsigned char *) &y, 4) != -1);
+//    return (RS232_SendBuf(COM_PORT, (unsigned char *) "0", 1)) &&
+//           (RS232_SendBuf(COM_PORT, (unsigned char *) &x, 4)) &&
+//           (RS232_SendBuf(COM_PORT, (unsigned char *) &y, 4));
+//
+//
+
+#ifdef DEBUG
+//   fprintf(stderr,"%d %d %d\n", (RS232_SendBuf(COM_PORT, (unsigned char *) "0", 1)),
+//              (RS232_SendBuf(COM_PORT, (unsigned char *) &x, 4)),
+//               (RS232_SendBuf(COM_PORT, (unsigned char *) &y, 4)));
+
+#endif
+
+    (RS232_SendBuf(COM_PORT, (unsigned char *) "0", 1));
+    (RS232_SendBuf(COM_PORT, (unsigned char *) &x, 4));
+    (RS232_SendBuf(COM_PORT, (unsigned char *) &y, 4));
+
+    RS232_flushTX(COM_PORT);
+
+    return  true;
+
 }
 
 bool getCoordinates(int16_t* x, int16_t* y, float* servo_x, float* servo_y){

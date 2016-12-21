@@ -313,7 +313,7 @@ int RS232_SendBuf(int comport_number, unsigned char *buf, int size)
     }
   }
 
-  return(0);
+  return(n);
 }
 
 

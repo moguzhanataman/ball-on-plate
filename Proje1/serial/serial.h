@@ -15,7 +15,7 @@
 #define COM_PORT 24
 #endif
 
-#define BD_RATE 9600
+#define BD_RATE 115200
 
 #include "rs232.h"
 
