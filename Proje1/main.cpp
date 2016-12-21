@@ -245,17 +245,6 @@ int main() {
 	IGUIStaticText* iyText = guienvFor2D->addStaticText(L"iy: ", core::rect<s32>(ResX + 230, 95, ResX + 240, 110));
 	IGUIEditBox* iy = guienvFor2D->addEditBox(L"iy", core::rect<s32>(ResX + 250, 80, ResX + 300, 120));
 
-	
-	
-	/* === FONT SETTING (currently not working) === 
-	IGUIFont *font = guienvFor2D->getFont("myfont.xml");
-	if (font) {
-		cout << "********************* Font loaded ***************************";
-	} else {
-		cout << "********************* Font not loaded ***************************";
-	}
-	font->draw(L"TEXT :D YAAAAAAAAY!!!!", rect<s32>(0, 0, 500, 550),SColor(255,255,255,255));
-	*/
 	// 2D Memory Game
 	IGUIStaticText* memoryGameText = guienvFor2D->addStaticText(L"MEMORY GAME", core::rect<s32>(50, 500, 200, 530));
 	
