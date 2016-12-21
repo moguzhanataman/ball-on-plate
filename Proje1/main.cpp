@@ -17,6 +17,7 @@
 #include <ctime>
 #include <math.h>
 
+
 using namespace irr;
 using namespace core;
 using namespace scene;
@@ -37,6 +38,10 @@ const int ResX = 640;
 const int ResY = 480;
 IrrlichtDevice *deviceFor3D = 0;
 f32 cameraDistance = 30000.f;
+ISceneManager* smgrFor3D;
+scene::ISceneNode* plateModelSceneNode;
+IVideoDriver* driverFor3D;
+
 
 /* ======= Prototypes ======= */
 void setActiveCamera(scene::ICameraSceneNode*);
@@ -46,6 +51,50 @@ void signal_handler(int sig) {
 	exit(0);
 }
 
+class Led
+{
+public:
+
+	void openLed()
+	{
+		bill = smgrFor3D->addBillboardSceneNode();
+		plateModelSceneNode->addChild(bill);
+		bill->setMaterialType(video::EMT_TRANSPARENT_ADD_COLOR);
+		bill->setMaterialTexture(0, driverFor3D->getTexture("assets/RealPlate/particlered.bmp"));
+		bill->setSize(core::dimension2d<f32>(3.0f, 3.0f));
+		bill->setPosition(core::vector3df(positionX, 0, positionY));
+
+	}
+	void closeLed()
+	{
+		bill->setSize(core::dimension2d<f32>(3.0f, 3.0f));
+		bill->setPosition(core::vector3df(positionX, -1, positionY));
+	}
+	friend void fillLedArray(Led ledArray[6][8])
+	{
+		int ledPositionX = -10;
+		int ledPositionY = -15;
+		for (int i = 0; i < 6; i++)
+		{
+			for (int j = 0; j < 8; j++)
+			{
+				ledArray[i][j].setpositionX(ledPositionX);
+				ledArray[i][j].setpositionY(ledPositionY);
+				ledPositionY += 4.5;
+			}
+			ledPositionX += 4;
+			ledPositionY = -15;
+		}
+	}
+	void setpositionX(int pos) { positionX = pos; }
+	void setpositionY(int pos) { positionY = pos; }
+	int getpositionX() { return positionX; }
+	int getpositionY() { return positionY; }
+private:
+	scene::IBillboardSceneNode * bill;
+	int positionX;
+	int positionY;
+};
 
 double mapping(double x, double in_min, double in_max, double out_min, double out_max)
 {
@@ -123,8 +172,8 @@ int main() {
 
 	buttonTriangle->setImage(driverFor2D->getTexture("assets/triangle.jpg"));*/
 
-	IVideoDriver* driverFor3D = deviceFor3D->getVideoDriver();
-	ISceneManager* smgrFor3D = deviceFor3D->getSceneManager();
+	driverFor3D = deviceFor3D->getVideoDriver();
+	smgrFor3D = deviceFor3D->getSceneManager();
 	IGUIEnvironment* guienvFor3D = deviceFor3D->getGUIEnvironment();
 
 	core::array<SJoystickInfo> joystickInfoFor2D;
@@ -195,7 +244,7 @@ int main() {
 
 	// 3D Part
 	// Create Platform
-	scene::ISceneNode* plateModelSceneNode = smgrFor3D->addEmptySceneNode();
+	plateModelSceneNode = smgrFor3D->addEmptySceneNode();
 
 	// Create Plate
 	IAnimatedMesh* plateMesh = smgrFor3D->getMesh("assets/RealPlate/plate3.obj");
@@ -265,7 +314,6 @@ int main() {
 
 
 
-
 	// Alt plaka
 	scene::ISceneNode* lowerPlate = smgrFor3D->addCubeSceneNode();
 	if (lowerPlate) {
@@ -328,6 +376,22 @@ int main() {
 	cout << "Mouse x-> " << (double)mouseReceiver.GetMouseState().Position.X << " and Mouse y -> "
 	<< (double)mouseReceiver.GetMouseState().Position.Y << endl;*/
 	
+
+
+	Led ledArr[6][8];
+	//cerceve ustu
+	fillLedArray(ledArr);
+
+	for (int i = 0; i < 6; i++)
+	{
+		for (int j = 0; j < 8; j++)
+		{
+			ledArr[i][j].openLed();
+		}
+	}
+
+
+
 	std::ofstream outfile("lul.txt");
 	core::position2df currentPosition = core::position2df(0,0);
 	int16_t x=150, y=140;
@@ -359,10 +423,11 @@ int main() {
 			sendSetpoints(buffPosX, buffPosY);
 		}
 
-		plateRotation.Z = calculateRotation(servo_x, 16);
+		plateRotation.Z = -1 * calculateRotation(servo_y, 12);
 		firstServoLength = (double)mapping(servo_x, 90, 180, 2.1, 2.388);
 
-		plateRotation.X = calculateRotation(servo_y, 12);
+
+		plateRotation.X = calculateRotation(servo_x, 16);
 		secondServoLength = (double)mapping(servo_y, 90, 180, 2.1, 2.604);
 
 		firstArm->setScale(vector3df(0.05, firstServoLength, 0.05));
