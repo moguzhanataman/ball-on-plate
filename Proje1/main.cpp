@@ -354,7 +354,7 @@ int main() {
 		
 		if (lastPos != mouseReceiver.GetMouseState().Position) {
 			lastPos = mouseReceiver.GetMouseState().Position;
-			buffPosX = mapping(lastPos.X, 40, ResX - 40, 160, 910);
+			buffPosX = mapping(lastPos.X, 40, ResX - 40, 200, 910);
 			buffPosY = mapping(lastPos.Y, 40, ResY - 40, 190, 880);
 			sendSetpoints(buffPosX, buffPosY);
 		}
