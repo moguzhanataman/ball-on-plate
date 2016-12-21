@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <fstream>
+#include <wchar.h>
 
 using namespace irr;
 using namespace core;
@@ -150,6 +151,7 @@ int main() {
 
 	changeButton->setScaleImage(false);
 
+	// 2D text and inputs
 	IGUIStaticText* pxText = guienvFor2D->addStaticText(L"px: ", core::rect<s32>(ResX + 20, 35, ResX + 40, 50));
 	IGUIEditBox* px = guienvFor2D->addEditBox(L"px", core::rect<s32>(ResX + 40, 20, ResX + 100, 60));
 
@@ -167,6 +169,38 @@ int main() {
 
 	IGUIStaticText* iyText = guienvFor2D->addStaticText(L"iy: ", core::rect<s32>(ResX + 220, 95, ResX + 240, 110));
 	IGUIEditBox* iy = guienvFor2D->addEditBox(L"iy", core::rect<s32>(ResX + 240, 80, ResX + 300, 120));
+
+	
+	
+	/* === FONT SETTING (currently not working) === 
+	IGUIFont *font = guienvFor2D->getFont("myfont.xml");
+	if (font) {
+		cout << "********************* Font loaded ***************************";
+	} else {
+		cout << "********************* Font not loaded ***************************";
+	}
+	font->draw(L"TEXT :D YAAAAAAAAY!!!!", rect<s32>(0, 0, 500, 550),SColor(255,255,255,255));
+	*/
+	// 2D Memory Game
+	IGUIStaticText* memoryGameText = guienvFor2D->addStaticText(L"MEMORY GAME", core::rect<s32>(50, 500, 200, 530));
+	
+	IGUIStaticText* trueText = guienvFor2D->addStaticText(L"True: ", core::rect<s32>(50, 530, 100, 550));
+	IGUIStaticText* trueNumberText = guienvFor2D->addStaticText(L"", core::rect<s32>(100, 530, 150, 550));
+	int trueNumber = 0;
+
+	IGUIStaticText* falseText = guienvFor2D->addStaticText(L"False: ", core::rect<s32>(50, 550, 100, 600));
+	IGUIStaticText* falseNumberText = guienvFor2D->addStaticText(L"", core::rect<s32>(100, 550, 150, 600));
+	int falseNumber = 0;
+
+	IGUIButton* startMemoryGameButton = 
+		guienvFor2D->addButton(core::rect<s32>(50, 580, 150, 600), 0, -1, L"Start Memory Game");
+
+	IGUIButton* endMemoryGameButton = 
+		guienvFor2D->addButton(core::rect<s32>(50, 600, 150, 620), 0, -1, L"End Memory Game");
+
+	bool isGameStarted = false;
+	IGUIStaticText* gameStatusText = 
+		guienvFor2D->addStaticText(L"", core::rect<s32>(50, 620, 250, 650));
 
 	// 3D Part
 	// Create Platform
@@ -308,8 +342,11 @@ int main() {
 	int16_t x=150, y=140;
 	float servo_x=90, servo_y=90;
 	wchar_t buffer[50] = L"";
+	wchar_t wstrBuffer[128];
 	while (deviceFor2D->run() && deviceFor3D->run())
 	{
+
+		trueNumberText->setText(L"TRUE...");
 
 		core::vector3df platePosition = plateModelSceneNode->getPosition();
 		core::vector3df plateRotation = plateModelSceneNode->getRotation();
@@ -322,7 +359,6 @@ int main() {
 		}
 
 		cout << x << " " << y << " " << servo_x << " " << servo_y << endl;
-		#endif
 		plateRotation.Z = (double)mapping(servo_x, 90, 180, 0, 6.5);
 		firstServoLength = (double)mapping(servo_x, 90, 180, 2.1, 2.388);
 
@@ -330,10 +366,25 @@ int main() {
 		cout << "Mouse x-> " << (double)mouseReceiver.GetMouseState().Position.X << " and Mouse y -> " 
 				<< (double)mouseReceiver.GetMouseState().Position.Y << endl;
 		*/
-		#ifdef SERIAL_ON
 		cout << "X -> " << x << " and Y -> " << y << endl;
 		#endif
 
+		if (startMemoryGameButton->isPressed()) {
+			startMemoryGameButton->setPressed(false);
+			trueNumber = 0;
+			falseNumber = 0;
+			gameStatusText->setText(L"Game started");
+			// trueNumberText->setText(L"0");
+			// falseNumberText->setText(L"0");
+		}
+
+		if (endMemoryGameButton->isPressed()) {
+			endMemoryGameButton->setPressed(false);
+			swprintf(wstrBuffer, 128, L"Game ended you completed with %d true paths and %d false paths", trueNumber, falseNumber);
+			gameStatusText->setText(wstrBuffer);
+			trueNumber = 0;
+			falseNumber = 0;
+		}
 
 		plateRotation.X = (double)mapping(servo_y, 90, 180, 0, 6.5);
 		secondServoLength = (double)mapping(servo_y, 90, 180, 2.1, 2.604);
