@@ -454,7 +454,7 @@ int main() {
 		}
 
 		plateRotation.Z = -1 * calculateRotation(servo_y, 12);
-		firstServoLength = (double)mapping(servo_x, 90, 180, 2.1, 2.388);
+		firstServoLength = (double)mapping(servo_y, 90, 180, 2.1, 2.388);
 
 		/*
 		cout << "Mouse x-> " << (double)mouseReceiver.GetMouseState().Position.X << " and Mouse y -> " 
@@ -481,7 +481,7 @@ int main() {
 
 
 		plateRotation.X = calculateRotation(servo_x, 16);
-		secondServoLength = (double)mapping(servo_y, 90, 180, 2.1, 2.604);
+		secondServoLength = (double)mapping(servo_x, 90, 180, 2.1, 2.604);
 
 		firstArm->setScale(vector3df(0.05, firstServoLength, 0.05));
 		secondArm->setScale(vector3df(0.05, secondServoLength, 0.05));
