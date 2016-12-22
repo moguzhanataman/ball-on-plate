@@ -106,3 +106,17 @@ bool readLeds(char **leds){
 	
 	return readBuf((char*)leds, 48);
 }
+
+bool getCoordinatesAndLeds(int16_t* x, int16_t* y, float* servo_x, float* servo_y, char** leds){
+	
+	char buf[60];
+	
+	if(readBuf(buf, 60) == false)
+		return false;
+	
+	memcpy(x, buf,2);
+	memcpy(y, buf+2,2);
+	memcpy(servo_x, buf+4,4);
+	memcpy(servo_y, buf+8,4);
+	memcpy(leds, buf+12, 48);	
+}
