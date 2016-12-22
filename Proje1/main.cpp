@@ -248,23 +248,25 @@ int main() {
 	// 2D Memory Game
 	IGUIStaticText* memoryGameText = guienvFor2D->addStaticText(L"MEMORY GAME", core::rect<s32>(50, 500, 200, 530));
 	
-	IGUIStaticText* trueText = guienvFor2D->addStaticText(L"True: ", core::rect<s32>(50, 530, 100, 550));
-	IGUIStaticText* trueNumberText = guienvFor2D->addStaticText(L"", core::rect<s32>(100, 530, 150, 550));
+	int memoryGuiBaseY = 300;
+
+	IGUIStaticText* trueText = guienvFor2D->addStaticText(L"True: ", core::rect<s32>(50, memoryGuiBaseY, 100, 550));
+	IGUIStaticText* trueNumberText = guienvFor2D->addStaticText(L"", core::rect<s32>(100, memoryGuiBaseY, 150, 550));
 	int trueNumber = 0;
 
-	IGUIStaticText* falseText = guienvFor2D->addStaticText(L"False: ", core::rect<s32>(50, 550, 100, 600));
-	IGUIStaticText* falseNumberText = guienvFor2D->addStaticText(L"", core::rect<s32>(100, 550, 150, 600));
+	IGUIStaticText* falseText = guienvFor2D->addStaticText(L"False: ", core::rect<s32>(50, memoryGuiBaseY + 20, 100, 600));
+	IGUIStaticText* falseNumberText = guienvFor2D->addStaticText(L"", core::rect<s32>(100, memoryGuiBaseY + 20, 150, 600));
 	int falseNumber = 0;
 
 	IGUIButton* startMemoryGameButton = 
-		guienvFor2D->addButton(core::rect<s32>(50, 580, 150, 600), 0, -1, L"Start Memory Game");
+		guienvFor2D->addButton(core::rect<s32>(50, memoryGuiBaseY + 40, 150, 600), 0, -1, L"Start Memory Game");
 
 	IGUIButton* endMemoryGameButton = 
-		guienvFor2D->addButton(core::rect<s32>(50, 600, 150, 620), 0, -1, L"End Memory Game");
+		guienvFor2D->addButton(core::rect<s32>(50, memoryGuiBaseY + 60, 150, 620), 0, -1, L"End Memory Game");
 
 	bool isGameStarted = false;
 	IGUIStaticText* gameStatusText = 
-		guienvFor2D->addStaticText(L"", core::rect<s32>(50, 620, 250, 650));
+		guienvFor2D->addStaticText(L"", core::rect<s32>(50, memoryGuiBaseY + 80, 250, 650));
 
 	// 3D Part
 	// Create Platform
