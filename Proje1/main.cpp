@@ -580,6 +580,17 @@ int main() {
 		graphicX[size] = x - graphicX[size - 1];
 		graphicY[size] = y - graphicY[size - 1];
 		
+		if (graphicX < 0)
+			graphicX[size] = graphicX[size] * 0.1 + 100;
+
+		else
+			graphicX[size] = graphicX[size] * 0.1 - 100;
+
+		if(graphicY<0)
+			graphicY[size] = graphicY[size] * 0.1 + 320;
+
+		else
+			graphicY[size] = graphicY[size] * 0.1 - 320;
 
 		printGraphic(driverFor2D, guienvFor2D, graphicX, graphicY, size);
 
