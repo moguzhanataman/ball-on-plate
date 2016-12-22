@@ -4,7 +4,7 @@
 #pragma comment(lib, "Irrlicht.lib")
 #endif
 
-// #define SERIAL_ON
+#define SERIAL_ON
 
 #include <iostream>
 #include <irrlicht.h>
@@ -387,21 +387,31 @@ int main() {
 	}
 	
 
-	Led ledArr[6][8];
-	//cerceve ustu
-	fillLedArray(ledArr);
+	int gameMode = 0;
+	int gamePoints = 0;
+	char ledSerial[6][8];
+	Led led3D[6][8];
 
-	for (int i = 0; i < 6; i++)
-	{
-		for (int j = 0; j < 8; j++)
-		{
-			ledArr[i][j].openLed();
+	//cerceve ustu
+	fillLedArray(led3D);
+
+	// for (int i = 0; i < 6; i++)
+	// {
+	// 	for (int j = 0; j < 8; j++)
+	// 	{
+	// 		led3D[i][j].openLed();
+	// 	}
+	// }
+
+	for (int i = 0; i < 6; ++i) {
+		for (int j = 0; j < 8; ++j) {
+			ledSerial[i][j] = 'f';
 		}
 	}
 
-
 	double graphicX[91], graphicY[91];
 	int size = 0;		
+
 
 	core::position2df currentPosition = core::position2df(0,0);
 	int16_t x=150, y=140;
@@ -410,10 +420,13 @@ int main() {
 	wchar_t wstrBuffer[128];
 	core::position2di lastPos = mouseReceiver.GetMouseState().Position;
 	double buffPosX=0, buffPosY=0;
+
+
 	while (deviceFor2D->run() && deviceFor3D->run())
 	{
 		start = std::clock();
 
+		// TODO: degistir
 		trueNumberText->setText(L"TRUE...");
 
 		core::vector3df platePosition = plateModelSceneNode->getPosition();
@@ -421,6 +434,36 @@ int main() {
 
 		#ifdef SERIAL_ON
 		if (getCoordinates(&x, &y, &servo_x, &servo_y)) {
+			if (gameMode == 1) {
+				readLeds((char**)ledSerial);
+
+				for (int i = 0; i < 6; ++i) {
+					for (int j = 0; j < 8; ++j) {
+						if (ledSerial[i][j] == 't') {
+							led3D[i][j].openLed();
+						} else {
+							led3D[i][j].closeLed();
+						}
+					}
+				}
+
+				if ( !(x == 0 && y == 1023) ) {
+					if (ledSerial[0][0] == 'f' && ledSerial[1][1] == 't') {
+						gameStatusText->setText(L"Try Again");
+					}
+
+					if (ledSerial[4][6] == 't') {
+						gamePoints++;
+						swprintf(wstrBuffer, 128, L"+1 Point! Your current score: %d", gamePoints);
+						gameStatusText->setText(wstrBuffer);
+					}
+				}
+
+				if (gamePoints == 5) {
+					gameStatusText->setText(L"Congratulations, You won!");
+				}
+			}
+
 			double posX, posY;
 			posX = mapping(x, 160, 910, 40, ResX - 40);
 			posY = mapping(y, 190, 880, 40, ResY - 40);
@@ -429,6 +472,7 @@ int main() {
 
 		}
 		#endif
+
 		cout << x << " " << y << " " << servo_x << " " << servo_y << endl;
 		plateRotation.Z = (double)mapping(servo_x, 90, 180, 0, 6.5);
 		
@@ -446,17 +490,21 @@ int main() {
 
 		if (startMemoryGameButton->isPressed()) {
 			startMemoryGameButton->setPressed(false);
+			gameMode = 1;
 			trueNumber = 0;
 			falseNumber = 0;
 			gameStatusText->setText(L"Game started");
 			// trueNumberText->setText(L"0");
 			// falseNumberText->setText(L"0");
+			
+
 		}
 
 		if (endMemoryGameButton->isPressed()) {
 			endMemoryGameButton->setPressed(false);
 			swprintf(wstrBuffer, 128, L"Game ended you completed with %d true paths and %d false paths", trueNumber, falseNumber);
 			gameStatusText->setText(wstrBuffer);
+			gameMode = 0;
 			trueNumber = 0;
 			falseNumber = 0;
 		}
