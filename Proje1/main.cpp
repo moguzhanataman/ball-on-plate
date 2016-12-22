@@ -406,7 +406,7 @@ int main() {
 	// for (int i = 0; i < 6; i++)
 	// {
 	// 	for (int j = 0; j < 8; j++)
-	// 	{
+	// 	{c
 	// 		led3D[i][j].openLed();
 	// 	}
 	// }
@@ -417,10 +417,10 @@ int main() {
 		}
 	}
 
-	double graphicX[91], graphicY[91];
-	int size = 0;		
+	double graphicX[91] = { 0 }, graphicY[91] = {0};
+	int size = 1;		
 
-
+	    
 	core::position2df currentPosition = core::position2df(0,0);
 	int16_t x=150, y=140;
 	float servo_x=90, servo_y=90;
@@ -498,7 +498,9 @@ int main() {
 
 		if (startMemoryGameButton->isPressed()) {
 			startMemoryGameButton->setPressed(false);
-			startMemoryGame();
+			
+			sendBuf("1", 1);
+
 			gameMode = 1;
 			trueNumber = 0;
 			falseNumber = 0;
@@ -509,7 +511,8 @@ int main() {
 
 		if (endMemoryGameButton->isPressed()) {
 			endMemoryGameButton->setPressed(false);
-			startPIDMode();
+			char c = '0';
+			sendBuf(&c, 1);
 			swprintf(wstrBuffer, 128, L"Game ended you completed with %d true paths and %d false paths", trueNumber, falseNumber);
 			gameStatusText->setText(wstrBuffer);
 			gameMode = 0;
@@ -557,17 +560,26 @@ int main() {
 		driverFor2D->enableMaterial2D(false);
 
 
+
+		
+
 		if (size == 91) {
 			for (int k = 0; k < 90; k++) {
 				graphicX[k] = graphicX[k + 1];
 			}
+			size = 90;
 		}
 
 		if (size == 91) {
 			for (int k = 0; k < 90; k++) {
 				graphicY[k] = graphicY[k + 1];
 			}
+			size = 90;
 		}
+
+		graphicX[size] = x - graphicX[size - 1];
+		graphicY[size] = y - graphicY[size - 1];
+		
 
 		printGraphic(driverFor2D, guienvFor2D, graphicX, graphicY, size);
 
@@ -863,7 +875,8 @@ void printGraphic(video::IVideoDriver* driverFor2D, gui::IGUIEnvironment* guienv
 
 	int y = 700;
 
-	for (int i = 1; i < size; i++) {
+	for (int i = 0; i < size; i++) {
+		
 		driverFor2D->draw2DLine(position2di(y - 5, graphicX[i - 1]), position2di(y, graphicX[i]), graphicColor);
 
 		driverFor2D->draw2DLine(position2di(y - 5, graphicY[i - 1]), position2di(y, graphicY[i]), graphicColor);
