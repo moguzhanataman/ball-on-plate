@@ -265,7 +265,7 @@ int main() {
 	IMeshSceneNode* plateSceneNode = 0;
 	if (plateMesh)
 	{
-		//node2 = smgr->addOctreeSceneNode(mesh2->getMesh(0), 0, -1, 1024);
+	
 		plateSceneNode = smgrFor3D->addMeshSceneNode(plateMesh->getMesh(0));
 		plateSceneNode->setMaterialFlag(EMF_LIGHTING, true);
 		plateSceneNode->setPosition(core::vector3df(0, -0.8, 0));
@@ -282,7 +282,7 @@ int main() {
 	IMeshSceneNode* ballSceneNode = 0;
 	if (ballMesh)
 	{
-		//node2 = smgr->addOctreeSceneNode(mesh2->getMesh(0), 0, -1, 1024);
+	
 		ballSceneNode = smgrFor3D->addMeshSceneNode(ballMesh->getMesh(0));
 		ballSceneNode->setMaterialFlag(EMF_LIGHTING, true);
 		ballSceneNode->setPosition(core::vector3df(0, 2, 0));
@@ -366,7 +366,7 @@ int main() {
 	IMeshSceneNode* tableSceneNode = 0;
 	if (tableMesh)
 	{
-		//node2 = smgr->addOctreeSceneNode(mesh2->getMesh(0), 0, -1, 1024);
+	
 		tableSceneNode = smgrFor3D->addMeshSceneNode(tableMesh->getMesh(0));
 		tableSceneNode->setMaterialFlag(EMF_LIGHTING, false);
 		tableSceneNode->setMaterialFlag(E_MATERIAL_FLAG::EMF_COLOR_MATERIAL, false);
@@ -385,11 +385,7 @@ int main() {
 		roomNode->setPosition(core::vector3df(-10, 40, -10));
 		roomNode->setScale(vector3df(6, 3.5, 5));
 	}
-	/*
-	cout << "Mouse x-> " << (double)mouseReceiver.GetMouseState().Position.X << " and Mouse y -> "
-	<< (double)mouseReceiver.GetMouseState().Position.Y << endl;*/
 	
-
 
 	Led ledArr[6][8];
 	//cerceve ustu
@@ -430,7 +426,7 @@ int main() {
 			posY = mapping(y, 190, 880, 40, ResY - 40);
 			currentPosition = core::position2df(posX, posY);
 			core::vector3df ballPosition = core::vector3df(currentPosition.X, 2.0 ,currentPosition.Y);
-			//ballSceneNode->setPosition(ballPosition);
+
 		}
 		#endif
 		cout << x << " " << y << " " << servo_x << " " << servo_y << endl;
@@ -446,10 +442,6 @@ int main() {
 		plateRotation.Z = -1 * calculateRotation(servo_y, 12);
 		firstServoLength = (double)mapping(servo_y, 90, 180, 2.1, 2.388);
 
-		/*
-		cout << "Mouse x-> " << (double)mouseReceiver.GetMouseState().Position.X << " and Mouse y -> " 
-				<< (double)mouseReceiver.GetMouseState().Position.Y << endl;
-		*/
 		cout << "X -> " << x << " and Y -> " << y << endl;
 
 		if (startMemoryGameButton->isPressed()) {
@@ -537,8 +529,6 @@ int main() {
 
 		
 
-		/*std::cout << "Duration : " << duration << '\n';
-		cout << x << " " << y << " " << servo_x << " " << servo_y << endl;*/
 	}
 	
 	
