@@ -222,29 +222,6 @@ int main() {
 
 	deviceFor2D->setWindowCaption(L"Ball on Plate - 2D");
 
-
-	IGUIButton* changeButton = guienvFor2D->addButton(core::rect<s32>(ResX + 140, 140, ResX + 200, 160), 0, -1, L"Change");
-
-	changeButton->setScaleImage(false);
-
-	IGUIStaticText* pxText = guienvFor2D->addStaticText(L"px: ", core::rect<s32>(ResX + 30, 35, ResX + 40, 50));
-	IGUIEditBox* px = guienvFor2D->addEditBox(L"px", core::rect<s32>(ResX + 50, 20, ResX + 100, 60));
-
-	IGUIStaticText* dxText = guienvFor2D->addStaticText(L"dx: ", core::rect<s32>(ResX + 130, 35, ResX + 140, 50));
-	IGUIEditBox* dx = guienvFor2D->addEditBox(L"dx", core::rect<s32>(ResX + 150, 20, ResX + 200, 60));
-
-	IGUIStaticText* ixText = guienvFor2D->addStaticText(L"ix: ", core::rect<s32>(ResX + 230, 35, ResX + 240, 50));
-	IGUIEditBox* ix = guienvFor2D->addEditBox(L"ix", core::rect<s32>(ResX + 250, 20, ResX + 300, 60));
-
-	IGUIStaticText* pyText = guienvFor2D->addStaticText(L"py: ", core::rect<s32>(ResX + 30, 95, ResX + 40, 120));
-	IGUIEditBox* py = guienvFor2D->addEditBox(L"py", core::rect<s32>(ResX + 50, 80, ResX + 100, 120));
-
-	IGUIStaticText* dyText = guienvFor2D->addStaticText(L"dy: ", core::rect<s32>(ResX + 130, 95, ResX + 140, 110));
-	IGUIEditBox* dy = guienvFor2D->addEditBox(L"dy", core::rect<s32>(ResX + 150, 80, ResX + 200, 120));
-
-	IGUIStaticText* iyText = guienvFor2D->addStaticText(L"iy: ", core::rect<s32>(ResX + 230, 95, ResX + 240, 110));
-	IGUIEditBox* iy = guienvFor2D->addEditBox(L"iy", core::rect<s32>(ResX + 250, 80, ResX + 300, 120));
-
 	// 2D Memory Game
 	int base_y = 600;
 	IGUIStaticText* memoryGameText = guienvFor2D->addStaticText(L"MEMORY GAME", core::rect<s32>(50, base_y - 40, 200, base_y - 20));
@@ -266,6 +243,16 @@ int main() {
 	bool isGameStarted = false;
 	IGUIStaticText* gameStatusText = 
 		guienvFor2D->addStaticText(L"", core::rect<s32>(50, base_y + 80, 250, base_y + 100));
+
+	// 2D Vision App
+	int base_vision_x = 200;
+	int base_vision_y = 640;
+	
+	IGUIButton* startVisionButton = 
+			guienvFor2D->addButton(core::rect<s32>(base_vision_x, base_vision_y, base_vision_x + 100, base_vision_y + 20), 0, -1, L"Start Vision App");
+	IGUIButton* endVisionButton = 
+			guienvFor2D->addButton(core::rect<s32>(base_vision_x, base_vision_y + 20, base_vision_x + 100, base_vision_y + 40), 0, -1, L"End Vision App");
+
 
 	// 3D Part
 	// Create Platform
@@ -478,6 +465,18 @@ int main() {
 			gameStatusText->setText(wstrBuffer);
 			trueNumber = 0;
 			falseNumber = 0;
+		}
+
+		if (startVisionButton->isPressed()) {
+			startVisionButton->setPressed(false);
+			gameStatusText->setText(L"Vision app started");
+			// trueNumberText->setText(L"0");
+			// falseNumberText->setText(L"0");
+		}
+
+		if (endVisionButton->isPressed()) {
+			endVisionButton->setPressed(false);
+			gameStatusText->setText(L"Vision app ended");
 		}
 
 
