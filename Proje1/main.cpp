@@ -246,27 +246,28 @@ int main() {
 	IGUIEditBox* iy = guienvFor2D->addEditBox(L"iy", core::rect<s32>(ResX + 250, 80, ResX + 300, 120));
 
 	// 2D Memory Game
-	IGUIStaticText* memoryGameText = guienvFor2D->addStaticText(L"MEMORY GAME", core::rect<s32>(50, 500, 200, 530));
-	
-	int memoryGuiBaseY = 300;
+	int base_y = 600;
+	IGUIStaticText* memoryGameText = guienvFor2D->addStaticText(L"MEMORY GAME", core::rect<s32>(50, base_y - 40, 200, base_y - 20));
+	cout << memoryGameText->getActiveFont() << endl;
 
-	IGUIStaticText* trueText = guienvFor2D->addStaticText(L"True: ", core::rect<s32>(50, memoryGuiBaseY, 100, 550));
-	IGUIStaticText* trueNumberText = guienvFor2D->addStaticText(L"", core::rect<s32>(100, memoryGuiBaseY, 150, 550));
+	exit(0);
+	IGUIStaticText* trueText = guienvFor2D->addStaticText(L"True: ", core::rect<s32>(50, base_y, 100, base_y + 20));
+	IGUIStaticText* trueNumberText = guienvFor2D->addStaticText(L"", core::rect<s32>(100, base_y, 150, base_y + 20));
 	int trueNumber = 0;
 
-	IGUIStaticText* falseText = guienvFor2D->addStaticText(L"False: ", core::rect<s32>(50, memoryGuiBaseY + 20, 100, 600));
-	IGUIStaticText* falseNumberText = guienvFor2D->addStaticText(L"", core::rect<s32>(100, memoryGuiBaseY + 20, 150, 600));
+	IGUIStaticText* falseText = guienvFor2D->addStaticText(L"False: ", core::rect<s32>(50, base_y + 20, 100, base_y + 40));
+	IGUIStaticText* falseNumberText = guienvFor2D->addStaticText(L"", core::rect<s32>(100, base_y + 20, 150, base_y + 40));
 	int falseNumber = 0;
 
 	IGUIButton* startMemoryGameButton = 
-		guienvFor2D->addButton(core::rect<s32>(50, memoryGuiBaseY + 40, 150, 600), 0, -1, L"Start Memory Game");
+		guienvFor2D->addButton(core::rect<s32>(50, base_y + 40, 150, base_y + 60), 0, -1, L"Start Memory Game");
 
 	IGUIButton* endMemoryGameButton = 
-		guienvFor2D->addButton(core::rect<s32>(50, memoryGuiBaseY + 60, 150, 620), 0, -1, L"End Memory Game");
+		guienvFor2D->addButton(core::rect<s32>(50, base_y + 60, 150, base_y + 80), 0, -1, L"End Memory Game");
 
 	bool isGameStarted = false;
 	IGUIStaticText* gameStatusText = 
-		guienvFor2D->addStaticText(L"", core::rect<s32>(50, memoryGuiBaseY + 80, 250, 650));
+		guienvFor2D->addStaticText(L"", core::rect<s32>(50, base_y + 80, 250, base_y + 100));
 
 	// 3D Part
 	// Create Platform
