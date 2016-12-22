@@ -4,7 +4,7 @@
 #pragma comment(lib, "Irrlicht.lib")
 #endif
 
-#define SERIAL_ON
+//#define SERIAL_ON
 #define VISION
 
 #include <pthread.h>
@@ -494,8 +494,8 @@ int main() {
 			gameStatusText->setText(L"Vision app started");
 			// trueNumberText->setText(L"0");
 			// falseNumberText->setText(L"0");
-			pthread_create(&thread, NULL, vision, NULL);		
-		/*	
+		//	pthread_create(&thread, NULL, vision, NULL);		
+			
 			child = fork();
 			
 			if(child == 0){
@@ -505,7 +505,7 @@ int main() {
 			}else{
 				close(fd[1]);
 				pthread_create(&thread, NULL, pipe_thread, fd);		
-			}*/
+			}
 		}
 
 		if (endVisionButton->isPressed()) {
@@ -513,12 +513,12 @@ int main() {
 			gameStatusText->setText(L"Vision app ended");
 			cv::destroyWindow("in");
 			
-			vision_stop = 1;
-			cv::destroyWindow("in");
+			//vision_stop = 1;
+			//cv::destroyWindow("in");
 			//pthread_join(thread, NULL);
 			
-			//kill(child, SIGUSR1);
-			//pthread_cancel(thread);
+			kill(child, SIGUSR1);
+			pthread_cancel(thread);
 		}
 #endif
 		plateRotation.X = calculateRotation(servo_x, 16);
@@ -771,7 +771,7 @@ void* vision(void* arg){
 		gettimeofday(&tp, NULL);
 		long lastSent = tp.tv_sec * 1000 + tp.tv_usec / 1000;
 		long lastSaved = tp.tv_sec * 1000 + tp.tv_usec / 1000;
-		int sentPeriod = 150;
+		int sentPeriod = 200;
 		int savePeriod = 100;
 		cv::Mat InImage, mirror;
         // Open input and read image
@@ -805,7 +805,7 @@ void* vision(void* arg){
             for (unsigned int i = 0; i < Markers.size(); i++) {
                 //cout << Markers[i] << endl;
                 Markers[i].draw(InImage, Scalar(0, 0, 255), 2);
-				
+
 				gettimeofday(&tp, NULL);
 				long cur = tp.tv_sec * 1000 + tp.tv_usec / 1000;
 				
@@ -817,27 +817,21 @@ void* vision(void* arg){
 					que.push(map_float(Markers[i].getCenter().y, 65.0, 425.0, 250.0, 775.0));
 					
 				}				
-				
-			}
-				
-				gettimeofday(&tp, NULL);
-				long cur = tp.tv_sec * 1000 + tp.tv_usec / 1000;
-				
 				if(cur - lastSent >= sentPeriod){
 					
 					lastSent = cur;
 					
 					if(!que.empty()){
 						float x = que.front();
-						que.pop();
 						float y = que.front();
-						que.pop();
 						
-						sendSetpoints(x, y);
+						write(fd[1], (const void*)&x, 4);
+						write(fd[1], (const void*)&y, 4);
 						
 						cout << "Child: " << x << " " << y << endl;
 					}
 					}
+				}
             
 
             // draw a 3d cube in each marker if there is 3d info
@@ -851,11 +845,11 @@ void* vision(void* arg){
              ****/
             // show input with augmented information
             
-            if(!vision_stop){
+           // if(!vision_stop){
 				cv::flip(InImage, mirror, 1);
 				cv::namedWindow("in", 1);
 				cv::imshow("in", mirror);
-			}
+			//}
             if(char(cv::waitKey(30)) >= 0)
                 break;
         } while(vreader.grab()); // wait for esc to be pressed
@@ -878,7 +872,7 @@ void* vision(void* arg){
 		return NULL;
     }
 }
-/*
+
 void* pipe_thread(void* arg){
 	
 	int fd = *((int*)arg);
@@ -904,5 +898,4 @@ void* pipe_thread(void* arg){
 	
 	return NULL;
 }
-*/
 #endif
