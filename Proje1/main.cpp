@@ -53,7 +53,15 @@ void signal_handler(int sig) {
 	exit(0);
 }
 void printGraphic(video::IVideoDriver* driverFor2D, gui::IGUIEnvironment* guienvFor2D, double *graphicX, double *graphicY, int size);
+void startMemoryGame() {
+	char c = '1';
+	sendBuf(&c, 1);
+}
 
+void startPIDMode() {
+	char c = '0';
+	sendBuf(&c, 1);
+}
 
 class Led
 {
@@ -490,18 +498,18 @@ int main() {
 
 		if (startMemoryGameButton->isPressed()) {
 			startMemoryGameButton->setPressed(false);
+			startMemoryGame();
 			gameMode = 1;
 			trueNumber = 0;
 			falseNumber = 0;
 			gameStatusText->setText(L"Game started");
 			// trueNumberText->setText(L"0");
 			// falseNumberText->setText(L"0");
-			
-
 		}
 
 		if (endMemoryGameButton->isPressed()) {
 			endMemoryGameButton->setPressed(false);
+			startPIDMode();
 			swprintf(wstrBuffer, 128, L"Game ended you completed with %d true paths and %d false paths", trueNumber, falseNumber);
 			gameStatusText->setText(wstrBuffer);
 			gameMode = 0;
