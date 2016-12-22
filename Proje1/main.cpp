@@ -407,7 +407,6 @@ int main() {
 	double graphicX[91], graphicY[91];
 	int size = 0;		
 
-	std::ofstream outfile("ErrorCheckLog.log");
 	core::position2df currentPosition = core::position2df(0,0);
 	int16_t x=150, y=140;
 	float servo_x=90, servo_y=90;
@@ -541,6 +540,8 @@ int main() {
 		/*std::cout << "Duration : " << duration << '\n';
 		cout << x << " " << y << " " << servo_x << " " << servo_y << endl;*/
 	}
+	
+	
 	deviceFor2D->drop();
 	deviceFor3D->drop();
 	close_serial();
