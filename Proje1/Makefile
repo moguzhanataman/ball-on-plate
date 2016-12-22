@@ -15,7 +15,7 @@ BinPath = .
 # preprocessor flags, e.g. defines and include paths
 USERCPPFLAGS = -I/usr/include/irrlicht/ 
 # compiler flags such as optimization flags
-USERCXXFLAGS = -O3 -ffast-math
+USERCXXFLAGS = -O3 -ffast-math -laruco `pkg-config --cflags --libs opencv` -lpthread
 #USERCXXFLAGS = -g -Wall
 # linker flags such as additional libraries and link paths
 USERLDFLAGS =

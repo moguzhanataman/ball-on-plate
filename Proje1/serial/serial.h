@@ -12,7 +12,7 @@
 #define COM_PORT 6
 #else
 #include <unistd.h>
-#define COM_PORT 16
+#define COM_PORT 24
 #endif
 
 #define BD_RATE 115200

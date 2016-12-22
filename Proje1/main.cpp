@@ -4,8 +4,9 @@
 #pragma comment(lib, "Irrlicht.lib")
 #endif
 
-// #define SERIAL_ON
+#define SERIAL_ON
 
+#include <pthread.h>
 #include <iostream>
 #include <irrlicht.h>
 #include <rect.h>
@@ -19,6 +20,13 @@
 #include <wchar.h>
 #include <ctime>
 #include <math.h>
+#include <string>
+#include <stdlib.h>
+#include <aruco/aruco.h>
+#include <aruco/cvdrawingutils.h>
+#include <opencv2/highgui/highgui.hpp>
+#include "serial/serial.h"
+#include <sys/time.h>
 
 using namespace irr;
 using namespace core;
@@ -28,6 +36,8 @@ using namespace io;
 using namespace gui;
 using namespace std;
 using namespace irr;
+using namespace cv;
+using namespace aruco;
 
 #ifdef _IRR_WINDOWS_
 #pragma comment(lib, "Irrlicht.lib")
@@ -46,12 +56,16 @@ IVideoDriver* driverFor3D;
 
 
 /* ======= Prototypes ======= */
+void* vision(void* arg);
+float map_float(float x, float in_min, float in_max, float out_min, float out_max);
 void setActiveCamera(scene::ICameraSceneNode*);
 void printRuler(video::IVideoDriver* driverFor2D, IGUIEnvironment* guienvFor2D);
 void signal_handler(int sig) {
 	close_serial();
 	exit(0);
 }
+
+sig_atomic_t vision_stop = 0;
 
 class Led
 {
@@ -118,6 +132,7 @@ double calculateRotation( double servo_angle, double plateScale ) {
 int main() {
 	std::clock_t start;
 	double duration;
+	pthread_t thread;
 
 #ifdef _WIN32
 	
@@ -472,11 +487,16 @@ int main() {
 			gameStatusText->setText(L"Vision app started");
 			// trueNumberText->setText(L"0");
 			// falseNumberText->setText(L"0");
+			pthread_create(&thread, NULL, vision, NULL);		
 		}
 
 		if (endVisionButton->isPressed()) {
 			endVisionButton->setPressed(false);
 			gameStatusText->setText(L"Vision app ended");
+			vision_stop = 1;
+			cv::destroyWindow("in");
+			//pthread_cancel(thread);
+			//pthread_join(thread, NULL);
 		}
 
 
@@ -717,3 +737,106 @@ void printRuler(video::IVideoDriver* driverFor2D, IGUIEnvironment* guienvFor2D) 
 	guienvFor2D->addStaticText(L"23", rect<s32>(660, 437.82, 700, 520), false);
 	guienvFor2D->addStaticText(L"24", rect<s32>(660, 456, 700, 520), false);
 }
+
+float map_float(float x, float in_min, float in_max, float out_min, float out_max){
+
+    return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
+
+void* vision(void* arg){
+	try{
+		struct timeval tp;
+		gettimeofday(&tp, NULL);
+		long lastSent = tp.tv_sec * 1000 + tp.tv_usec / 1000;
+		int sentPeriod = 100;
+		cv::Mat InImage, mirror;
+        // Open input and read image
+        VideoCapture vreader(0);
+        if (vreader.isOpened()) vreader>>InImage;
+        else{cerr<<"Could not open input"<<endl;return NULL;}
+        // read camera parameters if specifed 
+        //CamParam.readFromXMLFile(argv[2]);
+        //CamParam.resize(InImage.size());
+        // read marker size if specified (default value -1)
+        float MarkerSize = -1;
+        //Create the detector
+        MarkerDetector MDetector;
+        MDetector.setThresholdParams(7, 7);
+        MDetector.setThresholdParamRange(2, 0);
+        std::map<uint32_t,MarkerPoseTracker> MTracker;//use a map so that for each id, we use a different pose tracker
+        //Set the dictionary you want to work with, if you included option -d in command line
+        //see dictionary.h for all types
+        //if (cml["-d"])  MDetector.setDictionary( cml("-d"),0.f);
+
+        do{
+            vreader.retrieve(InImage);
+            // Ok, let's detect
+            vector< Marker >  Markers=MDetector.detect(InImage);
+            /***
+            for(auto & marker:Markers)//for each marker
+                MTracker[marker.id].estimatePose(marker,CamParam,MarkerSize);//call its tracker and estimate the pose
+            ***/
+
+            // for each marker, draw info and its boundaries in the image
+            for (unsigned int i = 0; i < Markers.size(); i++) {
+                //cout << Markers[i] << endl;
+                Markers[i].draw(InImage, Scalar(0, 0, 255), 2);
+
+				gettimeofday(&tp, NULL);
+				long cur = tp.tv_sec * 1000 + tp.tv_usec / 1000;
+				
+				if(cur - lastSent >= sentPeriod){
+					
+					lastSent = cur;
+					
+					if(!sendSetpoints(map_float(Markers[i].getCenter().x, 45.0, 595.0, 800.0, 200.0),
+								map_float(Markers[i].getCenter().y, 65.0, 425.0, 250.0, 775.0))){
+
+						cerr << "send error" << endl;
+						raise(SIGINT);
+					}
+				}
+            }
+
+            // draw a 3d cube in each marker if there is 3d info
+            /****
+            if (CamParam.isValid() && MarkerSize != -1){
+                for (unsigned int i = 0; i < Markers.size(); i++) {
+                    CvDrawingUtils::draw3dCube(InImage, Markers[i], CamParam);
+                    CvDrawingUtils::draw3dAxis(InImage, Markers[i], CamParam);
+                }
+            }
+             ****/
+            // show input with augmented information
+            
+            if(!vision_stop){
+				cv::flip(InImage, mirror, 1);
+				cv::namedWindow("in", 1);
+				cv::imshow("in", mirror);
+			}/*else{
+				
+				mirror.release();
+				InImage.release();
+				vreader.release();
+				cv::destroyWindow("in");
+				cv::destroyWindow("in");
+				cv::destroyWindow("in");
+				break;
+						}
+			*/
+            if(char(cv::waitKey(33))==27 )
+                break;
+        } while(vreader.grab()); // wait for esc to be pressed
+		
+		return NULL;
+
+        //if (cml["-o"]) cv::imwrite(cml("-o"), InImage);
+    } catch (std::exception &ex)
+
+    {
+        cout << "Exception :" << ex.what() << endl;
+		      
+		return NULL;
+    }
+}
+
