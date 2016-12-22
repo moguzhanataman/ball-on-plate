@@ -248,9 +248,7 @@ int main() {
 	// 2D Memory Game
 	int base_y = 600;
 	IGUIStaticText* memoryGameText = guienvFor2D->addStaticText(L"MEMORY GAME", core::rect<s32>(50, base_y - 40, 200, base_y - 20));
-	cout << memoryGameText->getActiveFont() << endl;
 
-	exit(0);
 	IGUIStaticText* trueText = guienvFor2D->addStaticText(L"True: ", core::rect<s32>(50, base_y, 100, base_y + 20));
 	IGUIStaticText* trueNumberText = guienvFor2D->addStaticText(L"", core::rect<s32>(100, base_y, 150, base_y + 20));
 	int trueNumber = 0;
