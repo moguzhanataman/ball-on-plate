@@ -8,6 +8,12 @@
 #define SERIAL_ON
 #define VISION
 
+#ifdef _WIN32
+#include <Windows.h>
+#else
+#include <unistd.h>
+#endif
+
 #include <pthread.h>
 #include <iostream>
 #include <irrlicht.h>
@@ -57,8 +63,38 @@ scene::ISceneNode* plateModelSceneNode;
 IVideoDriver* driverFor3D;
 int fd[2];
 
+/* ======= Shapes ======= */
+int triangle[9][2] = {
+	{557, 541},
+	{557, 724},
+	{374, 745},
+	{457, 528},
+	{544, 329},
+	{647, 491},
+	{709, 679},
+	{541, 683},
+	{-1, -1}
+};
+int rectangle[11][2] = {
+	{557, 540},
+	{556, 742},
+	{382, 748},
+	{385, 540},
+	{392, 329},
+	{558, 321},
+	{731, 322},
+	{735, 512},
+	{728, 698},
+	{565, 700},
+	{-1, -1}
+};
+
+/* Threads */
+pthread_t shapeThread;
+
 /* ======= Prototypes ======= */
 void* vision(void* arg);
+void* drawShape(void* arg);
 void* pipe_thread(void* arg);
 float map_float(float x, float in_min, float in_max, float out_min, float out_max);
 void setActiveCamera(scene::ICameraSceneNode*);
@@ -196,16 +232,16 @@ int main() {
 	IGUIButton* buttonCircle = guienvFor2D->addButton(rect<s32>(20, ResY + 30, 120, ResY + 60 + 32), 0, -1,
 		L"", L"DRAW CIRCLE");
 	buttonCircle->setImage(driverFor2D->getTexture("assets/circle.jpg"));
-
-	IGUIButton* buttonRectangle = guienvFor2D->addButton(rect<s32>(140, ResY + 30, 240, ResY + 60 + 32), 0, -1,
+	*/
+	IGUIButton* buttonRectangle = guienvFor2D->addButton(rect<s32>(600, ResY + 100, 700, ResY + 200), 0, -1,
 		L"", L"DRAW RECTANGLE");
 
 	buttonRectangle->setImage(driverFor2D->getTexture("assets/rectangle.jpg"));
 
-	IGUIButton* buttonTriangle = guienvFor2D->addButton(rect<s32>(260, ResY + 30, 360, ResY + 60 + 32), 0, -1,
+	IGUIButton* buttonTriangle = guienvFor2D->addButton(rect<s32>(720, ResY + 100, 820, ResY + 200), 0, -1,
 		L"", L"DRAW TRIANGLE");
 
-	buttonTriangle->setImage(driverFor2D->getTexture("assets/triangle.jpg"));*/
+	buttonTriangle->setImage(driverFor2D->getTexture("assets/triangle.jpg"));
 
 	driverFor3D = deviceFor3D->getVideoDriver();
 	smgrFor3D = deviceFor3D->getSceneManager();
@@ -454,6 +490,9 @@ int main() {
 
 	bool coord = false;
 
+	ofstream points;
+	points.open("points.txt");
+
 	//////////////////////////////////////////////////////////////////////////////////////////////
 	//									LOOP
 	//////////////////////////////////////////////////////////////////////////////////////////////
@@ -551,6 +590,7 @@ int main() {
 			buffPosX = mapping(lastPos.X, 40, ResX - 40, 200, 910);
 			buffPosY = mapping(lastPos.Y, 40, ResY - 40, 190, 880);
 			sendSetpoints(buffPosX, buffPosY);
+			points << buffPosX << ", " << buffPosY << endl;
 		}
 
 		plateRotation.Z = -1 * calculateRotation(servo_y, 12);
@@ -585,6 +625,19 @@ int main() {
 			trueNumber = 0;
 			falseNumber = 0;
 		}
+
+		if (buttonRectangle->isPressed()) {
+			buttonRectangle->setPressed(false);
+			pthread_create(&shapeThread, NULL, drawShape, (void*) rectangle);
+			cout << "RECTANGLE pressed" << endl;
+		}
+
+		if (buttonTriangle->isPressed()) {
+			buttonTriangle->setPressed(false);
+			pthread_create(&shapeThread, NULL, drawShape, (void*) triangle);
+			cout << "TRIANGLE pressed" << endl;
+		}
+
 #ifdef VISION
 		pid_t child;
 		pipe(fd);
@@ -1127,4 +1180,19 @@ void printGraphic(video::IVideoDriver* driverFor2D, gui::IGUIEnvironment* guienv
 		x += 5;
 	}
 
+}
+
+void* drawShape(void* arg) {
+	int* ptr = (int*)arg;
+
+	for(int i=0; ptr[i] != -1; i += 2){
+
+		sendSetpoints((float)ptr[i], (float)ptr[i+1]);
+
+		#ifdef _WIN32
+		Sleep(1000);
+		#else
+		usleep(1000000);
+		#endif
+	}
 }
