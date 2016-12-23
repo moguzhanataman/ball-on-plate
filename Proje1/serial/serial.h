@@ -12,7 +12,7 @@
 #define COM_PORT 6
 #else
 #include <unistd.h>
-#define COM_PORT 16
+#define COM_PORT 24
 #endif
 
 #define BD_RATE 115200
@@ -57,4 +57,7 @@ bool sendSetpoints(float x, float y);
 /**
  */
 bool readLeds(char **leds);
+/**
+ */
+bool getCoordinatesAndLeds(int16_t* x, int16_t* y, float* servo_x, float* servo_y, char** leds);
 #endif //Serial.h

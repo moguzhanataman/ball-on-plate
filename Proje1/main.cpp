@@ -54,28 +54,29 @@ void signal_handler(int sig) {
 }
 void printGraphic(video::IVideoDriver* driverFor2D, gui::IGUIEnvironment* guienvFor2D, double *graphicX, double *graphicY, int size);
 void startMemoryGame() {
-	char c = '1';
-	sendBuf(&c, 1);
+	sendBuf("1", 1);
 }
 
 void startPIDMode() {
-	char c = '0';
-	sendBuf(&c, 1);
+	sendBuf("0", 1);
 }
 
 class Led
 {
 public:
 
-	void openLed()
-	{
+	Led() {
 		bill = smgrFor3D->addBillboardSceneNode();
 		plateModelSceneNode->addChild(bill);
 		bill->setMaterialType(video::EMT_TRANSPARENT_ADD_COLOR);
 		bill->setMaterialTexture(0, driverFor3D->getTexture("assets/RealPlate/particlered.bmp"));
+		bill->setSize(core::dimension2d<f32>(0.0f, 0.0f));
+		bill->setPosition(core::vector3df(positionX, -1, positionY));
+	}
+	void openLed()
+	{
 		bill->setSize(core::dimension2d<f32>(3.0f, 3.0f));
 		bill->setPosition(core::vector3df(positionX, 0, positionY));
-
 	}
 	void closeLed()
 	{
@@ -106,6 +107,7 @@ private:
 	scene::IBillboardSceneNode * bill;
 	int positionX;
 	int positionY;
+	int isClosed;
 };
 
 double mapping(double x, double in_min, double in_max, double out_min, double out_max)
@@ -428,7 +430,7 @@ int main() {
 	wchar_t wstrBuffer[128];
 	core::position2di lastPos = mouseReceiver.GetMouseState().Position;
 	double buffPosX=0, buffPosY=0;
-
+	bool coord = false;
 
 	while (deviceFor2D->run() && deviceFor3D->run())
 	{
@@ -441,45 +443,81 @@ int main() {
 		core::vector3df plateRotation = plateModelSceneNode->getRotation();
 
 		#ifdef SERIAL_ON
-		if (getCoordinates(&x, &y, &servo_x, &servo_y)) {
-			if (gameMode == 1) {
-				readLeds((char**)ledSerial);
+		/// Oyun modu
+		if (gameMode == 1) {
+			coord = getCoordinatesAndLeds(&x, &y, &servo_x, &servo_y,(char**)ledSerial);
+			
 
-				for (int i = 0; i < 6; ++i) {
-					for (int j = 0; j < 8; ++j) {
-						if (ledSerial[i][j] == 't') {
-							led3D[i][j].openLed();
-						} else {
-							led3D[i][j].closeLed();
-						}
-					}
+			cout << "***** \n";
+			if ( !(x == 0 && y == 1023) ) {
+				if (ledSerial[0][0] == 'f' && ledSerial[1][1] == 't') {
+					gameStatusText->setText(L"Try Again");
 				}
 
-				if ( !(x == 0 && y == 1023) ) {
-					if (ledSerial[0][0] == 'f' && ledSerial[1][1] == 't') {
-						gameStatusText->setText(L"Try Again");
-					}
-
-					if (ledSerial[4][6] == 't') {
-						gamePoints++;
-						swprintf(wstrBuffer, 128, L"+1 Point! Your current score: %d", gamePoints);
-						gameStatusText->setText(wstrBuffer);
-					}
-				}
-
-				if (gamePoints == 5) {
-					gameStatusText->setText(L"Congratulations, You won!");
+				if (ledSerial[4][6] == 't') {
+					gamePoints++;
+					swprintf(wstrBuffer, 128, L"+1 Point! Your current score: %d", gamePoints);
+					gameStatusText->setText(wstrBuffer);
 				}
 			}
 
+			if (gamePoints == 5) {
+				gameStatusText->setText(L"Congratulations, You won!");
+			}
+
+		} else if(gameMode == 0) { // pid modu
+			getCoordinates(&x, &y, &servo_x, &servo_y);
+
+		}
+
+		if ( !(x == 0 && y == 1023) ) {
 			double posX, posY;
 			posX = mapping(x, 160, 910, 40, ResX - 40);
 			posY = mapping(y, 190, 880, 40, ResY - 40);
 			currentPosition = core::position2df(posX, posY);
 			core::vector3df ballPosition = core::vector3df(currentPosition.X, 2.0 ,currentPosition.Y);
+		}
 
+		if (0) {
+	
+				
+
+				// for (int i = 0; i < 6; ++i) {
+				// 	for (int j = 0; j < 8; ++j) {
+				// 		cout << "##" << endl;
+				// 		cout << ledSerial[i][j] << endl;
+				// 		if (ledSerial[i][j] == 't') {
+				// 			cout << "icerde 222" << endl;
+				// 			led3D[i][j].openLed();
+				// 			cout << "icerde" << endl;
+
+				// 		} else {
+				// 			cout << "trying to close" << endl;
+				// 			led3D[i][j].openLed();
+				// 			led3D[i][j].closeLed();
+				// 			cout << "closed" << endl;
+				// 		}
+				// 	}
+				// }
+				
+				// if ( !(x == 0 && y == 1023) ) {
+				// 	// Hersey guzel map et.
+				// 	double posX, posY;
+				// 	posX = mapping(x, 160, 910, 40, ResX - 40);
+				// 	posY = mapping(y, 190, 880, 40, ResY - 40);
+				// 	currentPosition = core::position2df(posX, posY);
+				// 	core::vector3df ballPosition = core::vector3df(currentPosition.X, 2.0 ,currentPosition.Y);
+				// } else {
+				// 	// Plakayi duzle
+				// 	// Topu da yok et
+				// }
+				
+				
+			
 		}
 		#endif
+
+		
 
 		cout << x << " " << y << " " << servo_x << " " << servo_y << endl;
 		plateRotation.Z = (double)mapping(servo_x, 90, 180, 0, 6.5);
@@ -581,10 +619,6 @@ int main() {
 		driverFor2D->endScene();
 		driverFor3D->endScene();
 		duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
-
-
-		
-
 	}
 	
 	
