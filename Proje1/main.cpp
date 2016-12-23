@@ -4,7 +4,7 @@
 #pragma comment(lib, "Irrlicht.lib")
 #endif
 
-#define SERIAL_ON
+//#define SERIAL_ON
 
 #include <iostream>
 #include <irrlicht.h>
@@ -26,8 +26,8 @@ using namespace scene;
 using namespace video;
 using namespace io;
 using namespace gui;
-using namespace std;
 using namespace irr;
+using namespace std;
 
 #ifdef _IRR_WINDOWS_
 #pragma comment(lib, "Irrlicht.lib")
@@ -414,22 +414,25 @@ int main() {
 	for (int i = 0; i < 6; ++i) {
 		for (int j = 0; j < 8; ++j) {
 			ledSerial[i][j] = 'f';
-		}
+		}	
 	}
 
-	double graphicX[91] = { 0 }, graphicY[91] = {0};
+	double graphicX[41] = { 0 }, graphicY[41] = {0};
+	double lastX = 0, lastY=0;
 	int size = 1;		
 
-	    
+	int count = 5;
 	core::position2df currentPosition = core::position2df(0,0);
-	int16_t x=150, y=140;
+	int16_t x=450, y=420;
 	float servo_x=90, servo_y=90;
 	wchar_t buffer[50] = L"";
-	wchar_t wstrBuffer[128];
+	wchar_t wstrBuffer[128] = L"";
 	core::position2di lastPos = mouseReceiver.GetMouseState().Position;
 	double buffPosX=0, buffPosY=0;
 
-
+	//////////////////////////////////////////////////////////////////////////////////////////////
+	//									LOOP
+	//////////////////////////////////////////////////////////////////////////////////////////////
 	while (deviceFor2D->run() && deviceFor3D->run())
 	{
 		start = std::clock();
@@ -437,6 +440,8 @@ int main() {
 		// TODO: degistir
 		trueNumberText->setText(L"TRUE...");
 
+		x+=count; y+=count;
+		count++;
 		core::vector3df platePosition = plateModelSceneNode->getPosition();
 		core::vector3df plateRotation = plateModelSceneNode->getRotation();
 
@@ -563,40 +568,30 @@ int main() {
 
 		
 
-		if (size == 91) {
-			for (int k = 0; k < 90; k++) {
+		if (size == 41) {
+			for (int k = 0; k < 40; k++) {
 				graphicX[k] = graphicX[k + 1];
 			}
-			size = 90;
-		}
-
-		if (size == 91) {
-			for (int k = 0; k < 90; k++) {
+		
+			for (int k = 0; k < 40; k++) {
 				graphicY[k] = graphicY[k + 1];
 			}
-			size = 90;
+			size = 40;
 		}
 
-		graphicX[size] = x - graphicX[size - 1];
-		graphicY[size] = y - graphicY[size - 1];
-		
-		if (graphicX < 0)
-			graphicX[size] = graphicX[size] * 0.1 + 100;
 
-		else
-			graphicX[size] = graphicX[size] * 0.1 - 100;
+		graphicX[size] = mapping(x-lastX, 600, -600, 45, 165);
+		graphicY[size] = mapping(y-lastY, 600, -600, 265, 385);
 
-		if(graphicY<0)
-			graphicY[size] = graphicY[size] * 0.1 + 320;
-
-		else
-			graphicY[size] = graphicY[size] * 0.1 - 320;
+		lastX = x;
+		lastY = y;
 
 		printGraphic(driverFor2D, guienvFor2D, graphicX, graphicY, size);
-
+		cout << "error -> " << lastX <<  " " << graphicX[size] << " " << 
+				lastY << " " << graphicY[size] << endl;
 		size++;
-
-
+		
+		
 		smgrFor3D->drawAll();
 		guienvFor3D->drawAll();
 		guienvFor2D->drawAll();
@@ -609,6 +604,9 @@ int main() {
 		
 
 	}
+	//////////////////////////////////////////////////////////////////////////////////////////////
+	//									END OF LOOP
+	//////////////////////////////////////////////////////////////////////////////////////////////
 	
 	
 	deviceFor2D->drop();
@@ -623,6 +621,7 @@ void setActiveCamera(scene::ICameraSceneNode* newActive) {
 
 	scene::ICameraSceneNode * active = deviceFor3D->getSceneManager()->getActiveCamera();
 	active->setInputReceiverEnabled(false);
+	
 
 	newActive->setInputReceiverEnabled(true);
 	deviceFor3D->getSceneManager()->setActiveCamera(newActive);
@@ -884,15 +883,15 @@ void printGraphic(video::IVideoDriver* driverFor2D, gui::IGUIEnvironment* guienv
 	guienvFor2D->addStaticText(L"-500", rect<s32>(678, 370, 697, 520), false)->setOverrideColor(graphicColor);
 	guienvFor2D->addStaticText(L"-600", rect<s32>(678, 380, 697, 520), false)->setOverrideColor(graphicColor);
 
-	int y = 700;
+	int x = 700;
 
-	for (int i = 0; i < size; i++) {
+	for (int i = 1; i < size; i++) {
 		
-		driverFor2D->draw2DLine(position2di(y - 5, graphicX[i - 1]), position2di(y, graphicX[i]), graphicColor);
+		driverFor2D->draw2DLine(position2di(x - 5, graphicX[i - 1] ), position2di(x, graphicX[i]), graphicColor);
 
-		driverFor2D->draw2DLine(position2di(y - 5, graphicY[i - 1]), position2di(y, graphicY[i]), graphicColor);
+		driverFor2D->draw2DLine(position2di(x - 5, graphicY[i - 1]), position2di(x, graphicY[i]), graphicColor);
 
-		y += 5;
+		x += 5;
 	}
 
 }
