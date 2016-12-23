@@ -421,7 +421,7 @@ int main() {
 	double lastX = 0, lastY=0;
 	int size = 1;		
 
-	int count = 5;
+
 	core::position2df currentPosition = core::position2df(0,0);
 	int16_t x=450, y=420;
 	float servo_x=90, servo_y=90;
@@ -440,8 +440,8 @@ int main() {
 		// TODO: degistir
 		trueNumberText->setText(L"TRUE...");
 
-		x+=count; y+=count;
-		count++;
+		
+		
 		core::vector3df platePosition = plateModelSceneNode->getPosition();
 		core::vector3df plateRotation = plateModelSceneNode->getRotation();
 
