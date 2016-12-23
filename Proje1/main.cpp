@@ -4,6 +4,7 @@
 #pragma comment(lib, "Irrlicht.lib")
 #endif
 
+
 #define SERIAL_ON
 #define VISION
 
@@ -36,10 +37,10 @@ using namespace scene;
 using namespace video;
 using namespace io;
 using namespace gui;
-using namespace std;
 using namespace irr;
 using namespace cv;
 using namespace aruco;
+using namespace std;
 
 #ifdef _IRR_WINDOWS_
 #pragma comment(lib, "Irrlicht.lib")
@@ -68,6 +69,14 @@ void signal_handler(int sig) {
 		exit(0);
 	}
 }
+void printGraphic(video::IVideoDriver* driverFor2D, gui::IGUIEnvironment* guienvFor2D, double *graphicX, double *graphicY, int size);
+void startMemoryGame() {
+	sendBuf("1", 1);
+}
+
+void startPIDMode() {
+	sendBuf("0", 1);
+}
 
 sig_atomic_t vision_stop = 0;
 
@@ -75,15 +84,18 @@ class Led
 {
 public:
 
-	void openLed()
-	{
+	Led() {
 		bill = smgrFor3D->addBillboardSceneNode();
 		plateModelSceneNode->addChild(bill);
 		bill->setMaterialType(video::EMT_TRANSPARENT_ADD_COLOR);
 		bill->setMaterialTexture(0, driverFor3D->getTexture("assets/RealPlate/particlered.bmp"));
+		bill->setSize(core::dimension2d<f32>(0.0f, 0.0f));
+		bill->setPosition(core::vector3df(positionX, -1, positionY));
+	}
+	void openLed()
+	{
 		bill->setSize(core::dimension2d<f32>(3.0f, 3.0f));
 		bill->setPosition(core::vector3df(positionX, 0, positionY));
-
 	}
 	void closeLed()
 	{
@@ -114,6 +126,7 @@ private:
 	scene::IBillboardSceneNode * bill;
 	int positionX;
 	int positionY;
+	int isClosed;
 };
 
 double mapping(double x, double in_min, double in_max, double out_min, double out_max)
@@ -282,7 +295,7 @@ int main() {
 	IMeshSceneNode* plateSceneNode = 0;
 	if (plateMesh)
 	{
-		//node2 = smgr->addOctreeSceneNode(mesh2->getMesh(0), 0, -1, 1024);
+	
 		plateSceneNode = smgrFor3D->addMeshSceneNode(plateMesh->getMesh(0));
 		plateSceneNode->setMaterialFlag(EMF_LIGHTING, true);
 		plateSceneNode->setPosition(core::vector3df(0, -0.8, 0));
@@ -299,7 +312,7 @@ int main() {
 	IMeshSceneNode* ballSceneNode = 0;
 	if (ballMesh)
 	{
-		//node2 = smgr->addOctreeSceneNode(mesh2->getMesh(0), 0, -1, 1024);
+	
 		ballSceneNode = smgrFor3D->addMeshSceneNode(ballMesh->getMesh(0));
 		ballSceneNode->setMaterialFlag(EMF_LIGHTING, true);
 		ballSceneNode->setPosition(core::vector3df(0, 2, 0));
@@ -359,7 +372,6 @@ int main() {
 	camera->setTarget(core::vector3df(10, 15, 0));
 	setActiveCamera(camera);
 
-	float arr[6] = {};
 
 
 	double firstServoLength = 2.1;
@@ -384,7 +396,7 @@ int main() {
 	IMeshSceneNode* tableSceneNode = 0;
 	if (tableMesh)
 	{
-		//node2 = smgr->addOctreeSceneNode(mesh2->getMesh(0), 0, -1, 1024);
+	
 		tableSceneNode = smgrFor3D->addMeshSceneNode(tableMesh->getMesh(0));
 		tableSceneNode->setMaterialFlag(EMF_LIGHTING, false);
 		tableSceneNode->setMaterialFlag(E_MATERIAL_FLAG::EMF_COLOR_MATERIAL, false);
@@ -403,54 +415,135 @@ int main() {
 		roomNode->setPosition(core::vector3df(-10, 40, -10));
 		roomNode->setScale(vector3df(6, 3.5, 5));
 	}
-	/*
-	cout << "Mouse x-> " << (double)mouseReceiver.GetMouseState().Position.X << " and Mouse y -> "
-	<< (double)mouseReceiver.GetMouseState().Position.Y << endl;*/
 	
 
+	int gameMode = 0;
+	int gamePoints = 0;
+	char ledSerial[6][8];
+	Led led3D[6][8];
 
-	Led ledArr[6][8];
 	//cerceve ustu
-	fillLedArray(ledArr);
+	fillLedArray(led3D);
 
-	for (int i = 0; i < 6; i++)
-	{
-		for (int j = 0; j < 8; j++)
-		{
-			ledArr[i][j].openLed();
-		}
+	// for (int i = 0; i < 6; i++)
+	// {
+	// 	for (int j = 0; j < 8; j++)
+	// 	{c
+	// 		led3D[i][j].openLed();
+	// 	}
+	// }
+
+	for (int i = 0; i < 6; ++i) {
+		for (int j = 0; j < 8; ++j) {
+			ledSerial[i][j] = 'f';
+		}	
 	}
 
+	double graphicX[41] = { 0 }, graphicY[41] = {0};
+	double lastX = 0, lastY=0;
+	int size = 1;		
 
 
-	std::ofstream outfile("lul.txt");
 	core::position2df currentPosition = core::position2df(0,0);
-	int16_t x=150, y=140;
+	int16_t x=450, y=420;
 	float servo_x=90, servo_y=90;
 	wchar_t buffer[50] = L"";
-	wchar_t wstrBuffer[128];
+	wchar_t wstrBuffer[128] = L"";
 	core::position2di lastPos = mouseReceiver.GetMouseState().Position;
 	double buffPosX=0, buffPosY=0;
+
+	bool coord = false;
+
+	//////////////////////////////////////////////////////////////////////////////////////////////
+	//									LOOP
+	//////////////////////////////////////////////////////////////////////////////////////////////
 	while (deviceFor2D->run() && deviceFor3D->run())
 	{
 		start = std::clock();
 
+		// TODO: degistir
 		trueNumberText->setText(L"TRUE...");
 
+		
+		
 		core::vector3df platePosition = plateModelSceneNode->getPosition();
 		core::vector3df plateRotation = plateModelSceneNode->getRotation();
 
 		#ifdef SERIAL_ON
-		if (getCoordinates(&x, &y, &servo_x, &servo_y)) {
+		/// Oyun modu
+		if (gameMode == 1) {
+			coord = getCoordinatesAndLeds(&x, &y, &servo_x, &servo_y,(char**)ledSerial);
+			
+
+			cout << "***** \n";
+			if ( !(x == 0 && y == 1023) ) {
+				if (ledSerial[0][0] == 'f' && ledSerial[1][1] == 't') {
+					gameStatusText->setText(L"Try Again");
+				}
+
+				if (ledSerial[4][6] == 't') {
+					gamePoints++;
+					swprintf(wstrBuffer, 128, L"+1 Point! Your current score: %d", gamePoints);
+					gameStatusText->setText(wstrBuffer);
+				}
+			}
+
+			if (gamePoints == 5) {
+				gameStatusText->setText(L"Congratulations, You won!");
+			}
+
+		} else if(gameMode == 0) { // pid modu
+			getCoordinates(&x, &y, &servo_x, &servo_y);
+
+		}
+
+		if ( !(x == 0 && y == 1023) ) {
 			double posX, posY;
 			posX = mapping(x, 160, 910, 40, ResX - 40);
 			posY = mapping(y, 190, 880, 40, ResY - 40);
 			currentPosition = core::position2df(posX, posY);
 			core::vector3df ballPosition = core::vector3df(currentPosition.X, 2.0 ,currentPosition.Y);
-			//ballSceneNode->setPosition(ballPosition);
+		}
+
+		if (0) {
+	
+				
+
+				// for (int i = 0; i < 6; ++i) {
+				// 	for (int j = 0; j < 8; ++j) {
+				// 		cout << "##" << endl;
+				// 		cout << ledSerial[i][j] << endl;
+				// 		if (ledSerial[i][j] == 't') {
+				// 			cout << "icerde 222" << endl;
+				// 			led3D[i][j].openLed();
+				// 			cout << "icerde" << endl;
+
+				// 		} else {
+				// 			cout << "trying to close" << endl;
+				// 			led3D[i][j].openLed();
+				// 			led3D[i][j].closeLed();
+				// 			cout << "closed" << endl;
+				// 		}
+				// 	}
+				// }
+				
+				// if ( !(x == 0 && y == 1023) ) {
+				// 	// Hersey guzel map et.
+				// 	double posX, posY;
+				// 	posX = mapping(x, 160, 910, 40, ResX - 40);
+				// 	posY = mapping(y, 190, 880, 40, ResY - 40);
+				// 	currentPosition = core::position2df(posX, posY);
+				// 	core::vector3df ballPosition = core::vector3df(currentPosition.X, 2.0 ,currentPosition.Y);
+				// } else {
+				// 	// Plakayi duzle
+				// 	// Topu da yok et
+				// }
+				
+				
+			
 		}
 		#endif
-	//	cout << x << " " << y << " " << servo_x << " " << servo_y << endl;
+
 		plateRotation.Z = (double)mapping(servo_x, 90, 180, 0, 6.5);
 		
 		if (lastPos != mouseReceiver.GetMouseState().Position) {
@@ -471,6 +564,10 @@ int main() {
 
 		if (startMemoryGameButton->isPressed()) {
 			startMemoryGameButton->setPressed(false);
+			
+			sendBuf("1", 1);
+
+			gameMode = 1;
 			trueNumber = 0;
 			falseNumber = 0;
 			gameStatusText->setText(L"Game started");
@@ -480,8 +577,11 @@ int main() {
 
 		if (endMemoryGameButton->isPressed()) {
 			endMemoryGameButton->setPressed(false);
+			char c = '0';
+			sendBuf(&c, 1);
 			swprintf(wstrBuffer, 128, L"Game ended you completed with %d true paths and %d false paths", trueNumber, falseNumber);
 			gameStatusText->setText(wstrBuffer);
+			gameMode = 0;
 			trueNumber = 0;
 			falseNumber = 0;
 		}
@@ -547,8 +647,34 @@ int main() {
 		driverFor2D->draw2DRectangleOutline(core::recti(40, 40, ResX - 40, ResY - 40), video::SColor(255, 255, 50, 80));
 		driverFor2D->enableMaterial2D(false);
 
+
+
 		
 
+		if (size == 41) {
+			for (int k = 0; k < 40; k++) {
+				graphicX[k] = graphicX[k + 1];
+			}
+		
+			for (int k = 0; k < 40; k++) {
+				graphicY[k] = graphicY[k + 1];
+			}
+			size = 40;
+		}
+
+
+		graphicX[size] = mapping(x-lastX, 600, -600, 45, 165);
+		graphicY[size] = mapping(y-lastY, 600, -600, 265, 385);
+
+		lastX = x;
+		lastY = y;
+
+		printGraphic(driverFor2D, guienvFor2D, graphicX, graphicY, size);
+		cout << "error -> " << lastX <<  " " << graphicX[size] << " " << 
+				lastY << " " << graphicY[size] << endl;
+		size++;
+		
+		
 		smgrFor3D->drawAll();
 		guienvFor3D->drawAll();
 		guienvFor2D->drawAll();
@@ -557,13 +683,18 @@ int main() {
 		driverFor3D->endScene();
 		duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
 
-
 		//outfile << x << " vs. " << currentPosition.X << " and " << y <<  " and " << currentPosition.Y << endl;
 
 
 	//	std::cout << "Duration : " << duration << '\n';
 		//cout << x << " " << y << " " << servo_x << " " << servo_y << endl;
+
 	}
+	//////////////////////////////////////////////////////////////////////////////////////////////
+	//									END OF LOOP
+	//////////////////////////////////////////////////////////////////////////////////////////////
+	
+	
 	deviceFor2D->drop();
 	deviceFor3D->drop();
 	close_serial();
@@ -576,187 +707,189 @@ void setActiveCamera(scene::ICameraSceneNode* newActive) {
 
 	scene::ICameraSceneNode * active = deviceFor3D->getSceneManager()->getActiveCamera();
 	active->setInputReceiverEnabled(false);
+	
 
 	newActive->setInputReceiverEnabled(true);
 	deviceFor3D->getSceneManager()->setActiveCamera(newActive);
 }
 
 /**********************************************************
- * printRuler
- *
- * params:
- * 	- driverFor2D: Driver for 2D interface
- **********************************************************/
+* printRuler
+*
+* params:
+* 	- driverFor2D: Driver for 2D interface
+**********************************************************/
 void printRuler(video::IVideoDriver* driverFor2D, IGUIEnvironment* guienvFor2D) {
-	driverFor2D->draw2DLine(position2di(20, ResY - 10), position2di(20, ResY + 10), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(29.68, ResY - 10), position2di(29.68, ResY), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(39.35, ResY - 10), position2di(39.35, ResY + 10), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(49.03, ResY - 10), position2di(49.03, ResY), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(58.71, ResY - 10), position2di(58.71, ResY + 10), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(68.39, ResY - 10), position2di(68.39, ResY), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(78.07, ResY - 10), position2di(78.07, ResY + 10), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(87.75, ResY - 10), position2di(87.75, ResY), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(97.43, ResY - 10), position2di(97.43, ResY + 10), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(107.11, ResY - 10), position2di(107.11, ResY), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(116.79, ResY - 10), position2di(116.79, ResY + 10), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(126.47, ResY - 10), position2di(126.47, ResY), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(136.15, ResY - 10), position2di(136.15, ResY + 10), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(145.83, ResY - 10), position2di(145.83, ResY), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(155.51, ResY - 10), position2di(155.51, ResY + 10), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(165.19, ResY - 10), position2di(165.19, ResY), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(174.87, ResY - 10), position2di(174.87, ResY + 10), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(184.55, ResY - 10), position2di(184.55, ResY), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(194.23, ResY - 10), position2di(194.23, ResY + 10), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(203.91, ResY - 10), position2di(203.91, ResY), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(213.59, ResY - 10), position2di(213.59, ResY + 10), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(223.27, ResY - 10), position2di(223.27, ResY), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(232.95, ResY - 10), position2di(232.95, ResY + 10), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(242.63, ResY - 10), position2di(242.63, ResY), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(252.31, ResY - 10), position2di(252.31, ResY + 10), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(261.99, ResY - 10), position2di(261.99, ResY), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(271.67, ResY - 10), position2di(271.67, ResY + 10), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(281.35, ResY - 10), position2di(281.35, ResY), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(291.03, ResY - 10), position2di(291.03, ResY + 10), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(300.68, ResY - 10), position2di(300.68, ResY), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(310.36, ResY - 10), position2di(310.36, ResY + 10), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(320.04, ResY - 10), position2di(320.04, ResY), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(329.72, ResY - 10), position2di(329.72, ResY + 10), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(339.4, ResY - 10), position2di(339.4, ResY), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(349.08, ResY - 10), position2di(349.08, ResY + 10), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(358.76, ResY - 10), position2di(358.76, ResY), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(368.44, ResY - 10), position2di(368.44, ResY + 10), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(378.12, ResY - 10), position2di(378.12, ResY), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(387.8, ResY - 10), position2di(387.8, ResY + 10), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(397.48, ResY - 10), position2di(397.48, ResY), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(407.16, ResY - 10), position2di(407.16, ResY + 10), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(416.84, ResY - 10), position2di(416.84, ResY), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(426.52, ResY - 10), position2di(426.52, ResY + 10), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(436.2, ResY - 10), position2di(436.2, ResY), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(445.88, ResY - 10), position2di(445.88, ResY + 10), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(455.56, ResY - 10), position2di(455.56, ResY), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(465.24, ResY - 10), position2di(465.24, ResY + 10), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(474.92, ResY - 10), position2di(474.92, ResY), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(484.6, ResY - 10), position2di(484.6, ResY + 10), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(494.28, ResY - 10), position2di(494.28, ResY), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(503.96, ResY - 10), position2di(503.96, ResY + 10), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(513.64, ResY - 10), position2di(513.64, ResY), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(523.32, ResY - 10), position2di(523.32, ResY + 10), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(533, ResY - 10), position2di(533, ResY), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(542.68, ResY - 10), position2di(542.68, ResY + 10), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(552.36, ResY - 10), position2di(552.36, ResY), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(562.04, ResY - 10), position2di(562.04, ResY + 10), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(571.72, ResY - 10), position2di(571.72, ResY), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(581.4, ResY - 10), position2di(581.4, ResY + 10), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(591.08, ResY - 10), position2di(591.08, ResY), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(600.76, ResY - 10), position2di(600.76, ResY + 10), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(610.44, ResY - 10), position2di(610.44, ResY), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(620, ResY - 10), position2di(620, ResY + 10), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(ResX - 10, 20), position2di(ResX + 10, 20), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(ResX - 10, 29.17), position2di(ResX, 29.17), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(ResX - 10, 38.34), position2di(ResX + 10, 38.34), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(ResX - 10, 47.51), position2di(ResX, 47.51), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(ResX - 10, 56.68), position2di(ResX + 10, 56.68), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(ResX - 10, 65.85), position2di(ResX, 65.85), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(ResX - 10, 75.02), position2di(ResX + 10, 75.02), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(ResX - 10, 84.19), position2di(ResX, 84.19), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(ResX - 10, 93.36), position2di(ResX + 10, 93.36), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(ResX - 10, 102.53), position2di(ResX, 102.53), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(ResX - 10, 111.7), position2di(ResX + 10, 111.7), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(ResX - 10, 120.87), position2di(ResX, 120.87), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(ResX - 10, 130.04), position2di(ResX + 10, 130.04), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(ResX - 10, 139.21), position2di(ResX, 139.21), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(ResX - 10, 148.38), position2di(ResX + 10, 148.38), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(ResX - 10, 157.55), position2di(ResX, 157.55), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(ResX - 10, 166.72), position2di(ResX + 10, 166.72), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(ResX - 10, 175.89), position2di(ResX, 175.89), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(ResX - 10, 185.06), position2di(ResX + 10, 185.06), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(ResX - 10, 194.23), position2di(ResX, 194.23), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(ResX - 10, 203.4), position2di(ResX + 10, 203.4), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(ResX - 10, 212.57), position2di(ResX, 212.57), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(ResX - 10, 221.74), position2di(ResX + 10, 221.74), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(ResX - 10, 230.91), position2di(ResX, 230.91), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(ResX - 10, 240.08), position2di(ResX + 10, 240.08), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(ResX - 10, 249.25), position2di(ResX, 249.25), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(ResX - 10, 258.42), position2di(ResX + 10, 258.42), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(ResX - 10, 267.59), position2di(ResX, 267.59), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(ResX - 10, 276.76), position2di(ResX + 10, 276.76), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(ResX - 10, 285.93), position2di(ResX, 285.93), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(ResX - 10, 295.1), position2di(ResX + 10, 295.1), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(ResX - 10, 304.27), position2di(ResX, 304.27), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(ResX - 10, 313.44), position2di(ResX + 10, 313.44), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(ResX - 10, 322.61), position2di(ResX, 322.61), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(ResX - 10, 331.78), position2di(ResX + 10, 331.78), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(ResX - 10, 340.95), position2di(ResX, 340.95), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(ResX - 10, 350.12), position2di(ResX + 10, 350.12), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(ResX - 10, 359.29), position2di(ResX, 359.29), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(ResX - 10, 368.46), position2di(ResX + 10, 368.46), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(ResX - 10, 377.63), position2di(ResX, 377.63), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(ResX - 10, 386.8), position2di(ResX + 10, 386.8), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(ResX - 10, 395.97), position2di(ResX, 395.97), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(ResX - 10, 405.14), position2di(ResX + 10, 405.14), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(ResX - 10, 414.31), position2di(ResX, 414.31), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(ResX - 10, 423.48), position2di(ResX + 10, 423.48), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(ResX - 10, 432.65), position2di(ResX, 432.65), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(ResX - 10, 441.82), position2di(ResX + 10, 441.82), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(ResX - 10, 450.99), position2di(ResX, 450.99), SColor(255, 0, 0, 0));
-	driverFor2D->draw2DLine(position2di(ResX - 10, 460), position2di(ResX + 10, 460), SColor(255, 0, 0, 0));
-	guienvFor2D->addStaticText(L"0", rect<s32>(18, 500, 640, 520), false);
-	guienvFor2D->addStaticText(L"1", rect<s32>(37.35, 500, 640, 520), false);
-	guienvFor2D->addStaticText(L"2", rect<s32>(56.71, 500, 640, 520), false);
-	guienvFor2D->addStaticText(L"3", rect<s32>(76.07, 500, 640, 520), false);
-	guienvFor2D->addStaticText(L"4", rect<s32>(95.43, 500, 640, 520), false);
-	guienvFor2D->addStaticText(L"5", rect<s32>(114.79, 500, 640, 520), false);
-	guienvFor2D->addStaticText(L"6", rect<s32>(134.15, 500, 640, 520), false);
-	guienvFor2D->addStaticText(L"7", rect<s32>(153.51, 500, 640, 520), false);
-	guienvFor2D->addStaticText(L"8", rect<s32>(172.87, 500, 640, 520), false);
-	guienvFor2D->addStaticText(L"9", rect<s32>(192.23, 500, 640, 520), false);
-	guienvFor2D->addStaticText(L"10", rect<s32>(211.59, 500, 640, 520), false);
-	guienvFor2D->addStaticText(L"11", rect<s32>(230.95, 500, 640, 520), false);
-	guienvFor2D->addStaticText(L"12", rect<s32>(250.31, 500, 640, 520), false);
-	guienvFor2D->addStaticText(L"13", rect<s32>(269.67, 500, 640, 520), false);
-	guienvFor2D->addStaticText(L"14", rect<s32>(289.03, 500, 640, 520), false);
-	guienvFor2D->addStaticText(L"15", rect<s32>(308.36, 500, 640, 520), false);
-	guienvFor2D->addStaticText(L"16", rect<s32>(327.44, 500, 640, 520), false);
-	guienvFor2D->addStaticText(L"17", rect<s32>(347.08, 500, 640, 520), false);
-	guienvFor2D->addStaticText(L"18", rect<s32>(366.44, 500, 640, 520), false);
-	guienvFor2D->addStaticText(L"19", rect<s32>(385.8, 500, 640, 520), false);
-	guienvFor2D->addStaticText(L"20", rect<s32>(405.16, 500, 640, 520), false);
-	guienvFor2D->addStaticText(L"21", rect<s32>(424.52, 500, 640, 520), false);
-	guienvFor2D->addStaticText(L"22", rect<s32>(443.88, 500, 640, 520), false);
-	guienvFor2D->addStaticText(L"23", rect<s32>(463.24, 500, 640, 520), false);
-	guienvFor2D->addStaticText(L"24", rect<s32>(482.6, 500, 640, 520), false);
-	guienvFor2D->addStaticText(L"25", rect<s32>(501.96, 500, 640, 520), false);
-	guienvFor2D->addStaticText(L"26", rect<s32>(521.32, 500, 640, 520), false);
-	guienvFor2D->addStaticText(L"27", rect<s32>(540.68, 500, 640, 520), false);
-	guienvFor2D->addStaticText(L"28", rect<s32>(560.04, 500, 640, 520), false);
-	guienvFor2D->addStaticText(L"29", rect<s32>(579.4, 500, 640, 520), false);
-	guienvFor2D->addStaticText(L"30", rect<s32>(598.76, 500, 640, 520), false);
-	guienvFor2D->addStaticText(L"31", rect<s32>(618, 500, 640, 520), false);
-	guienvFor2D->addStaticText(L"0", rect<s32>(660, 16, 700, 520), false);
-	guienvFor2D->addStaticText(L"1", rect<s32>(660, 34.34, 700, 520), false);
-	guienvFor2D->addStaticText(L"2", rect<s32>(660, 52.68, 700, 520), false);
-	guienvFor2D->addStaticText(L"3", rect<s32>(660, 71.02, 700, 520), false);
-	guienvFor2D->addStaticText(L"4", rect<s32>(660, 89.36, 700, 520), false);
-	guienvFor2D->addStaticText(L"5", rect<s32>(660, 107.11, 700, 520), false);
-	guienvFor2D->addStaticText(L"6", rect<s32>(660, 126.04, 700, 520), false);
-	guienvFor2D->addStaticText(L"7", rect<s32>(660, 144.38, 700, 520), false);
-	guienvFor2D->addStaticText(L"8", rect<s32>(660, 162.72, 700, 520), false);
-	guienvFor2D->addStaticText(L"9", rect<s32>(660, 181.06, 700, 520), false);
-	guienvFor2D->addStaticText(L"10", rect<s32>(660, 199.4, 700, 520), false);
-	guienvFor2D->addStaticText(L"11", rect<s32>(660, 217.74, 700, 520), false);
-	guienvFor2D->addStaticText(L"12", rect<s32>(660, 236.08, 700, 520), false);
-	guienvFor2D->addStaticText(L"13", rect<s32>(660, 254.42, 700, 520), false);
-	guienvFor2D->addStaticText(L"14", rect<s32>(660, 272.76, 700, 520), false);
-	guienvFor2D->addStaticText(L"15", rect<s32>(660, 291.1, 700, 520), false);
-	guienvFor2D->addStaticText(L"16", rect<s32>(660, 309.44, 700, 520), false);
-	guienvFor2D->addStaticText(L"17", rect<s32>(660, 327.78, 700, 520), false);
-	guienvFor2D->addStaticText(L"18", rect<s32>(660, 346.12, 700, 520), false);
-	guienvFor2D->addStaticText(L"19", rect<s32>(660, 364.46, 700, 520), false);
-	guienvFor2D->addStaticText(L"20", rect<s32>(660, 382.8, 700, 520), false);
-	guienvFor2D->addStaticText(L"21", rect<s32>(660, 401.14, 700, 520), false);
-	guienvFor2D->addStaticText(L"22", rect<s32>(660, 419.48, 700, 520), false);
-	guienvFor2D->addStaticText(L"23", rect<s32>(660, 437.82, 700, 520), false);
-	guienvFor2D->addStaticText(L"24", rect<s32>(660, 456, 700, 520), false);
+	SColor rulerColor = SColor(255, 255, 255, 255);
+	driverFor2D->draw2DLine(position2di(20, ResY - 10), position2di(20, ResY + 10), rulerColor);
+	driverFor2D->draw2DLine(position2di(29.68, ResY - 10), position2di(29.68, ResY), rulerColor);
+	driverFor2D->draw2DLine(position2di(39.35, ResY - 10), position2di(39.35, ResY + 10), rulerColor);
+	driverFor2D->draw2DLine(position2di(49.03, ResY - 10), position2di(49.03, ResY), rulerColor);
+	driverFor2D->draw2DLine(position2di(58.71, ResY - 10), position2di(58.71, ResY + 10), rulerColor);
+	driverFor2D->draw2DLine(position2di(68.39, ResY - 10), position2di(68.39, ResY), rulerColor);
+	driverFor2D->draw2DLine(position2di(78.07, ResY - 10), position2di(78.07, ResY + 10), rulerColor);
+	driverFor2D->draw2DLine(position2di(87.75, ResY - 10), position2di(87.75, ResY), rulerColor);
+	driverFor2D->draw2DLine(position2di(97.43, ResY - 10), position2di(97.43, ResY + 10), rulerColor);
+	driverFor2D->draw2DLine(position2di(107.11, ResY - 10), position2di(107.11, ResY), rulerColor);
+	driverFor2D->draw2DLine(position2di(116.79, ResY - 10), position2di(116.79, ResY + 10), rulerColor);
+	driverFor2D->draw2DLine(position2di(126.47, ResY - 10), position2di(126.47, ResY), rulerColor);
+	driverFor2D->draw2DLine(position2di(136.15, ResY - 10), position2di(136.15, ResY + 10), rulerColor);
+	driverFor2D->draw2DLine(position2di(145.83, ResY - 10), position2di(145.83, ResY), rulerColor);
+	driverFor2D->draw2DLine(position2di(155.51, ResY - 10), position2di(155.51, ResY + 10), rulerColor);
+	driverFor2D->draw2DLine(position2di(165.19, ResY - 10), position2di(165.19, ResY), rulerColor);
+	driverFor2D->draw2DLine(position2di(174.87, ResY - 10), position2di(174.87, ResY + 10), rulerColor);
+	driverFor2D->draw2DLine(position2di(184.55, ResY - 10), position2di(184.55, ResY), rulerColor);
+	driverFor2D->draw2DLine(position2di(194.23, ResY - 10), position2di(194.23, ResY + 10), rulerColor);
+	driverFor2D->draw2DLine(position2di(203.91, ResY - 10), position2di(203.91, ResY), rulerColor);
+	driverFor2D->draw2DLine(position2di(213.59, ResY - 10), position2di(213.59, ResY + 10), rulerColor);
+	driverFor2D->draw2DLine(position2di(223.27, ResY - 10), position2di(223.27, ResY), rulerColor);
+	driverFor2D->draw2DLine(position2di(232.95, ResY - 10), position2di(232.95, ResY + 10), rulerColor);
+	driverFor2D->draw2DLine(position2di(242.63, ResY - 10), position2di(242.63, ResY), rulerColor);
+	driverFor2D->draw2DLine(position2di(252.31, ResY - 10), position2di(252.31, ResY + 10), rulerColor);
+	driverFor2D->draw2DLine(position2di(261.99, ResY - 10), position2di(261.99, ResY), rulerColor);
+	driverFor2D->draw2DLine(position2di(271.67, ResY - 10), position2di(271.67, ResY + 10), rulerColor);
+	driverFor2D->draw2DLine(position2di(281.35, ResY - 10), position2di(281.35, ResY), rulerColor);
+	driverFor2D->draw2DLine(position2di(291.03, ResY - 10), position2di(291.03, ResY + 10), rulerColor);
+	driverFor2D->draw2DLine(position2di(300.68, ResY - 10), position2di(300.68, ResY), rulerColor);
+	driverFor2D->draw2DLine(position2di(310.36, ResY - 10), position2di(310.36, ResY + 10), rulerColor);
+	driverFor2D->draw2DLine(position2di(320.04, ResY - 10), position2di(320.04, ResY), rulerColor);
+	driverFor2D->draw2DLine(position2di(329.72, ResY - 10), position2di(329.72, ResY + 10), rulerColor);
+	driverFor2D->draw2DLine(position2di(339.4, ResY - 10), position2di(339.4, ResY), rulerColor);
+	driverFor2D->draw2DLine(position2di(349.08, ResY - 10), position2di(349.08, ResY + 10), rulerColor);
+	driverFor2D->draw2DLine(position2di(358.76, ResY - 10), position2di(358.76, ResY), rulerColor);
+	driverFor2D->draw2DLine(position2di(368.44, ResY - 10), position2di(368.44, ResY + 10), rulerColor);
+	driverFor2D->draw2DLine(position2di(378.12, ResY - 10), position2di(378.12, ResY), rulerColor);
+	driverFor2D->draw2DLine(position2di(387.8, ResY - 10), position2di(387.8, ResY + 10), rulerColor);
+	driverFor2D->draw2DLine(position2di(397.48, ResY - 10), position2di(397.48, ResY), rulerColor);
+	driverFor2D->draw2DLine(position2di(407.16, ResY - 10), position2di(407.16, ResY + 10), rulerColor);
+	driverFor2D->draw2DLine(position2di(416.84, ResY - 10), position2di(416.84, ResY), rulerColor);
+	driverFor2D->draw2DLine(position2di(426.52, ResY - 10), position2di(426.52, ResY + 10), rulerColor);
+	driverFor2D->draw2DLine(position2di(436.2, ResY - 10), position2di(436.2, ResY), rulerColor);
+	driverFor2D->draw2DLine(position2di(445.88, ResY - 10), position2di(445.88, ResY + 10), rulerColor);
+	driverFor2D->draw2DLine(position2di(455.56, ResY - 10), position2di(455.56, ResY), rulerColor);
+	driverFor2D->draw2DLine(position2di(465.24, ResY - 10), position2di(465.24, ResY + 10), rulerColor);
+	driverFor2D->draw2DLine(position2di(474.92, ResY - 10), position2di(474.92, ResY), rulerColor);
+	driverFor2D->draw2DLine(position2di(484.6, ResY - 10), position2di(484.6, ResY + 10), rulerColor);
+	driverFor2D->draw2DLine(position2di(494.28, ResY - 10), position2di(494.28, ResY), rulerColor);
+	driverFor2D->draw2DLine(position2di(503.96, ResY - 10), position2di(503.96, ResY + 10), rulerColor);
+	driverFor2D->draw2DLine(position2di(513.64, ResY - 10), position2di(513.64, ResY), rulerColor);
+	driverFor2D->draw2DLine(position2di(523.32, ResY - 10), position2di(523.32, ResY + 10), rulerColor);
+	driverFor2D->draw2DLine(position2di(533, ResY - 10), position2di(533, ResY), rulerColor);
+	driverFor2D->draw2DLine(position2di(542.68, ResY - 10), position2di(542.68, ResY + 10), rulerColor);
+	driverFor2D->draw2DLine(position2di(552.36, ResY - 10), position2di(552.36, ResY), rulerColor);
+	driverFor2D->draw2DLine(position2di(562.04, ResY - 10), position2di(562.04, ResY + 10), rulerColor);
+	driverFor2D->draw2DLine(position2di(571.72, ResY - 10), position2di(571.72, ResY), rulerColor);
+	driverFor2D->draw2DLine(position2di(581.4, ResY - 10), position2di(581.4, ResY + 10), rulerColor);
+	driverFor2D->draw2DLine(position2di(591.08, ResY - 10), position2di(591.08, ResY), rulerColor);
+	driverFor2D->draw2DLine(position2di(600.76, ResY - 10), position2di(600.76, ResY + 10), rulerColor);
+	driverFor2D->draw2DLine(position2di(610.44, ResY - 10), position2di(610.44, ResY), rulerColor);
+	driverFor2D->draw2DLine(position2di(620, ResY - 10), position2di(620, ResY + 10), rulerColor);
+	driverFor2D->draw2DLine(position2di(ResX - 10, 20), position2di(ResX + 10, 20), rulerColor);
+	driverFor2D->draw2DLine(position2di(ResX - 10, 29.17), position2di(ResX, 29.17), rulerColor);
+	driverFor2D->draw2DLine(position2di(ResX - 10, 38.34), position2di(ResX + 10, 38.34), rulerColor);
+	driverFor2D->draw2DLine(position2di(ResX - 10, 47.51), position2di(ResX, 47.51), rulerColor);
+	driverFor2D->draw2DLine(position2di(ResX - 10, 56.68), position2di(ResX + 10, 56.68), rulerColor);
+	driverFor2D->draw2DLine(position2di(ResX - 10, 65.85), position2di(ResX, 65.85), rulerColor);
+	driverFor2D->draw2DLine(position2di(ResX - 10, 75.02), position2di(ResX + 10, 75.02), rulerColor);
+	driverFor2D->draw2DLine(position2di(ResX - 10, 84.19), position2di(ResX, 84.19), rulerColor);
+	driverFor2D->draw2DLine(position2di(ResX - 10, 93.36), position2di(ResX + 10, 93.36), rulerColor);
+	driverFor2D->draw2DLine(position2di(ResX - 10, 102.53), position2di(ResX, 102.53), rulerColor);
+	driverFor2D->draw2DLine(position2di(ResX - 10, 111.7), position2di(ResX + 10, 111.7), rulerColor);
+	driverFor2D->draw2DLine(position2di(ResX - 10, 120.87), position2di(ResX, 120.87), rulerColor);
+	driverFor2D->draw2DLine(position2di(ResX - 10, 130.04), position2di(ResX + 10, 130.04), rulerColor);
+	driverFor2D->draw2DLine(position2di(ResX - 10, 139.21), position2di(ResX, 139.21), rulerColor);
+	driverFor2D->draw2DLine(position2di(ResX - 10, 148.38), position2di(ResX + 10, 148.38), rulerColor);
+	driverFor2D->draw2DLine(position2di(ResX - 10, 157.55), position2di(ResX, 157.55), rulerColor);
+	driverFor2D->draw2DLine(position2di(ResX - 10, 166.72), position2di(ResX + 10, 166.72), rulerColor);
+	driverFor2D->draw2DLine(position2di(ResX - 10, 175.89), position2di(ResX, 175.89), rulerColor);
+	driverFor2D->draw2DLine(position2di(ResX - 10, 185.06), position2di(ResX + 10, 185.06), rulerColor);
+	driverFor2D->draw2DLine(position2di(ResX - 10, 194.23), position2di(ResX, 194.23), rulerColor);
+	driverFor2D->draw2DLine(position2di(ResX - 10, 203.4), position2di(ResX + 10, 203.4), rulerColor);
+	driverFor2D->draw2DLine(position2di(ResX - 10, 212.57), position2di(ResX, 212.57), rulerColor);
+	driverFor2D->draw2DLine(position2di(ResX - 10, 221.74), position2di(ResX + 10, 221.74), rulerColor);
+	driverFor2D->draw2DLine(position2di(ResX - 10, 230.91), position2di(ResX, 230.91), rulerColor);
+	driverFor2D->draw2DLine(position2di(ResX - 10, 240.08), position2di(ResX + 10, 240.08), rulerColor);
+	driverFor2D->draw2DLine(position2di(ResX - 10, 249.25), position2di(ResX, 249.25), rulerColor);
+	driverFor2D->draw2DLine(position2di(ResX - 10, 258.42), position2di(ResX + 10, 258.42), rulerColor);
+	driverFor2D->draw2DLine(position2di(ResX - 10, 267.59), position2di(ResX, 267.59), rulerColor);
+	driverFor2D->draw2DLine(position2di(ResX - 10, 276.76), position2di(ResX + 10, 276.76), rulerColor);
+	driverFor2D->draw2DLine(position2di(ResX - 10, 285.93), position2di(ResX, 285.93), rulerColor);
+	driverFor2D->draw2DLine(position2di(ResX - 10, 295.1), position2di(ResX + 10, 295.1), rulerColor);
+	driverFor2D->draw2DLine(position2di(ResX - 10, 304.27), position2di(ResX, 304.27), rulerColor);
+	driverFor2D->draw2DLine(position2di(ResX - 10, 313.44), position2di(ResX + 10, 313.44), rulerColor);
+	driverFor2D->draw2DLine(position2di(ResX - 10, 322.61), position2di(ResX, 322.61), rulerColor);
+	driverFor2D->draw2DLine(position2di(ResX - 10, 331.78), position2di(ResX + 10, 331.78), rulerColor);
+	driverFor2D->draw2DLine(position2di(ResX - 10, 340.95), position2di(ResX, 340.95), rulerColor);
+	driverFor2D->draw2DLine(position2di(ResX - 10, 350.12), position2di(ResX + 10, 350.12), rulerColor);
+	driverFor2D->draw2DLine(position2di(ResX - 10, 359.29), position2di(ResX, 359.29), rulerColor);
+	driverFor2D->draw2DLine(position2di(ResX - 10, 368.46), position2di(ResX + 10, 368.46), rulerColor);
+	driverFor2D->draw2DLine(position2di(ResX - 10, 377.63), position2di(ResX, 377.63), rulerColor);
+	driverFor2D->draw2DLine(position2di(ResX - 10, 386.8), position2di(ResX + 10, 386.8), rulerColor);
+	driverFor2D->draw2DLine(position2di(ResX - 10, 395.97), position2di(ResX, 395.97), rulerColor);
+	driverFor2D->draw2DLine(position2di(ResX - 10, 405.14), position2di(ResX + 10, 405.14), rulerColor);
+	driverFor2D->draw2DLine(position2di(ResX - 10, 414.31), position2di(ResX, 414.31), rulerColor);
+	driverFor2D->draw2DLine(position2di(ResX - 10, 423.48), position2di(ResX + 10, 423.48), rulerColor);
+	driverFor2D->draw2DLine(position2di(ResX - 10, 432.65), position2di(ResX, 432.65), rulerColor);
+	driverFor2D->draw2DLine(position2di(ResX - 10, 441.82), position2di(ResX + 10, 441.82), rulerColor);
+	driverFor2D->draw2DLine(position2di(ResX - 10, 450.99), position2di(ResX, 450.99), rulerColor);
+	driverFor2D->draw2DLine(position2di(ResX - 10, 460), position2di(ResX + 10, 460), rulerColor);
+	guienvFor2D->addStaticText(L"0", rect<s32>(18, 500, 640, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"1", rect<s32>(37.35, 500, 640, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"2", rect<s32>(56.71, 500, 640, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"3", rect<s32>(76.07, 500, 640, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"4", rect<s32>(95.43, 500, 640, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"5", rect<s32>(114.79, 500, 640, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"6", rect<s32>(134.15, 500, 640, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"7", rect<s32>(153.51, 500, 640, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"8", rect<s32>(172.87, 500, 640, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"9", rect<s32>(192.23, 500, 640, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"10", rect<s32>(211.59, 500, 640, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"11", rect<s32>(230.95, 500, 640, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"12", rect<s32>(250.31, 500, 640, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"13", rect<s32>(269.67, 500, 640, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"14", rect<s32>(289.03, 500, 640, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"15", rect<s32>(308.36, 500, 640, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"16", rect<s32>(327.44, 500, 640, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"17", rect<s32>(347.08, 500, 640, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"18", rect<s32>(366.44, 500, 640, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"19", rect<s32>(385.8, 500, 640, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"20", rect<s32>(405.16, 500, 640, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"21", rect<s32>(424.52, 500, 640, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"22", rect<s32>(443.88, 500, 640, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"23", rect<s32>(463.24, 500, 640, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"24", rect<s32>(482.6, 500, 640, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"25", rect<s32>(501.96, 500, 640, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"26", rect<s32>(521.32, 500, 640, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"27", rect<s32>(540.68, 500, 640, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"28", rect<s32>(560.04, 500, 640, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"29", rect<s32>(579.4, 500, 640, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"30", rect<s32>(598.76, 500, 640, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"31", rect<s32>(618, 500, 640, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"0", rect<s32>(660, 16, 700, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"1", rect<s32>(660, 34.34, 700, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"2", rect<s32>(660, 52.68, 700, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"3", rect<s32>(660, 71.02, 700, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"4", rect<s32>(660, 89.36, 700, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"5", rect<s32>(660, 107.11, 700, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"6", rect<s32>(660, 126.04, 700, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"7", rect<s32>(660, 144.38, 700, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"8", rect<s32>(660, 162.72, 700, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"9", rect<s32>(660, 181.06, 700, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"10", rect<s32>(660, 199.4, 700, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"11", rect<s32>(660, 217.74, 700, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"12", rect<s32>(660, 236.08, 700, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"13", rect<s32>(660, 254.42, 700, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"14", rect<s32>(660, 272.76, 700, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"15", rect<s32>(660, 291.1, 700, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"16", rect<s32>(660, 309.44, 700, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"17", rect<s32>(660, 327.78, 700, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"18", rect<s32>(660, 346.12, 700, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"19", rect<s32>(660, 364.46, 700, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"20", rect<s32>(660, 382.8, 700, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"21", rect<s32>(660, 401.14, 700, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"22", rect<s32>(660, 419.48, 700, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"23", rect<s32>(660, 437.82, 700, 520), false)->setOverrideColor(rulerColor);
+	guienvFor2D->addStaticText(L"24", rect<s32>(660, 456, 700, 520), false)->setOverrideColor(rulerColor);
 }
 
 float map_float(float x, float in_min, float in_max, float out_min, float out_max){
@@ -906,3 +1039,92 @@ void* pipe_thread(void* arg){
 }
 */
 #endif
+
+void printGraphic(video::IVideoDriver* driverFor2D, gui::IGUIEnvironment* guienvFor2D, double *graphicX, double *graphicY, int size)
+{
+	SColor graphicColor = SColor(255, 255, 255, 255);
+	guienvFor2D->addStaticText(L"ErrorX", rect<s32>(680, 20, 740, 195), false)->setOverrideColor(graphicColor);
+	guienvFor2D->addStaticText(L"Time", rect<s32>(905, 100, 940, 300), false)->setOverrideColor(graphicColor);
+	driverFor2D->draw2DLine(position2di(697, 105), position2di(900, 105), graphicColor);
+	driverFor2D->draw2DLine(position2di(890, 100), position2di(900, 105), graphicColor);
+	driverFor2D->draw2DLine(position2di(890, 110), position2di(900, 105), graphicColor);
+	driverFor2D->draw2DLine(position2di(700, 30), position2di(700, 180), graphicColor);
+	driverFor2D->draw2DLine(position2di(695, 40), position2di(700, 30), graphicColor);
+	driverFor2D->draw2DLine(position2di(705, 40), position2di(700, 30), graphicColor);
+	driverFor2D->draw2DLine(position2di(695, 170), position2di(700, 180), graphicColor);
+	driverFor2D->draw2DLine(position2di(705, 170), position2di(700, 180), graphicColor);
+
+	driverFor2D->draw2DLine(position2di(697, 45), position2di(703, 45), graphicColor);
+	driverFor2D->draw2DLine(position2di(697, 55), position2di(703, 55), graphicColor);
+	driverFor2D->draw2DLine(position2di(697, 65), position2di(703, 65), graphicColor);
+	driverFor2D->draw2DLine(position2di(697, 75), position2di(703, 75), graphicColor);
+	driverFor2D->draw2DLine(position2di(697, 85), position2di(703, 85), graphicColor);
+	driverFor2D->draw2DLine(position2di(697, 95), position2di(703, 95), graphicColor);
+	driverFor2D->draw2DLine(position2di(697, 115), position2di(703, 115), graphicColor);
+	driverFor2D->draw2DLine(position2di(697, 125), position2di(703, 125), graphicColor);
+	driverFor2D->draw2DLine(position2di(697, 135), position2di(703, 135), graphicColor);
+	driverFor2D->draw2DLine(position2di(697, 145), position2di(703, 145), graphicColor);
+	driverFor2D->draw2DLine(position2di(697, 155), position2di(703, 155), graphicColor);
+	driverFor2D->draw2DLine(position2di(697, 165), position2di(703, 165), graphicColor);
+	guienvFor2D->addStaticText(L"600", rect<s32>(680, 40, 697, 520), false)->setOverrideColor(graphicColor);
+	guienvFor2D->addStaticText(L"500", rect<s32>(680, 50, 697, 520), false)->setOverrideColor(graphicColor);
+	guienvFor2D->addStaticText(L"400", rect<s32>(680, 60, 697, 520), false)->setOverrideColor(graphicColor);
+	guienvFor2D->addStaticText(L"300", rect<s32>(680, 70, 697, 520), false)->setOverrideColor(graphicColor);
+	guienvFor2D->addStaticText(L"200", rect<s32>(680, 80, 697, 520), false)->setOverrideColor(graphicColor);
+	guienvFor2D->addStaticText(L"100", rect<s32>(680, 90, 697, 520), false)->setOverrideColor(graphicColor);
+	guienvFor2D->addStaticText(L"0", rect<s32>(680, 100, 697, 520), false)->setOverrideColor(graphicColor);
+	guienvFor2D->addStaticText(L"-100", rect<s32>(678, 110, 697, 520), false)->setOverrideColor(graphicColor);
+	guienvFor2D->addStaticText(L"-200", rect<s32>(678, 120, 697, 520), false)->setOverrideColor(graphicColor);
+	guienvFor2D->addStaticText(L"-300", rect<s32>(678, 130, 697, 520), false)->setOverrideColor(graphicColor);
+	guienvFor2D->addStaticText(L"-400", rect<s32>(678, 140, 697, 520), false)->setOverrideColor(graphicColor);
+	guienvFor2D->addStaticText(L"-500", rect<s32>(678, 150, 697, 520), false)->setOverrideColor(graphicColor);
+	guienvFor2D->addStaticText(L"-600", rect<s32>(678, 160, 697, 520), false)->setOverrideColor(graphicColor);
+
+	guienvFor2D->addStaticText(L"ErrorY", rect<s32>(680, 235, 740, 245), false)->setOverrideColor(graphicColor);
+	guienvFor2D->addStaticText(L"Time", rect<s32>(905, 320, 940, 350), false)->setOverrideColor(graphicColor);
+	driverFor2D->draw2DLine(position2di(697, 325), position2di(900, 325), graphicColor);
+	driverFor2D->draw2DLine(position2di(890, 320), position2di(900, 325), graphicColor);
+	driverFor2D->draw2DLine(position2di(890, 330), position2di(900, 325), graphicColor);
+	driverFor2D->draw2DLine(position2di(700, 250), position2di(700, 400), graphicColor);
+	driverFor2D->draw2DLine(position2di(695, 260), position2di(700, 250), graphicColor);
+	driverFor2D->draw2DLine(position2di(705, 260), position2di(700, 250), graphicColor);
+	driverFor2D->draw2DLine(position2di(695, 390), position2di(700, 400), graphicColor);
+	driverFor2D->draw2DLine(position2di(705, 390), position2di(700, 400), graphicColor);
+	driverFor2D->draw2DLine(position2di(697, 265), position2di(703, 265), graphicColor);
+	driverFor2D->draw2DLine(position2di(697, 275), position2di(703, 275), graphicColor);
+	driverFor2D->draw2DLine(position2di(697, 285), position2di(703, 285), graphicColor);
+	driverFor2D->draw2DLine(position2di(697, 295), position2di(703, 295), graphicColor);
+	driverFor2D->draw2DLine(position2di(697, 305), position2di(703, 305), graphicColor);
+	driverFor2D->draw2DLine(position2di(697, 315), position2di(703, 315), graphicColor);
+	driverFor2D->draw2DLine(position2di(697, 335), position2di(703, 335), graphicColor);
+	driverFor2D->draw2DLine(position2di(697, 345), position2di(703, 345), graphicColor);
+	driverFor2D->draw2DLine(position2di(697, 355), position2di(703, 355), graphicColor);
+	driverFor2D->draw2DLine(position2di(697, 365), position2di(703, 365), graphicColor);
+	driverFor2D->draw2DLine(position2di(697, 375), position2di(703, 375), graphicColor);
+	driverFor2D->draw2DLine(position2di(697, 385), position2di(703, 385), graphicColor);
+	guienvFor2D->addStaticText(L"600", rect<s32>(680, 260, 697, 520), false)->setOverrideColor(graphicColor);
+	guienvFor2D->addStaticText(L"500", rect<s32>(680, 270, 697, 520), false)->setOverrideColor(graphicColor);
+	guienvFor2D->addStaticText(L"400", rect<s32>(680, 280, 697, 520), false)->setOverrideColor(graphicColor);
+	guienvFor2D->addStaticText(L"300", rect<s32>(680, 290, 697, 520), false)->setOverrideColor(graphicColor);
+	guienvFor2D->addStaticText(L"200", rect<s32>(680, 300, 697, 520), false)->setOverrideColor(graphicColor);
+	guienvFor2D->addStaticText(L"100", rect<s32>(680, 310, 697, 520), false)->setOverrideColor(graphicColor);
+	guienvFor2D->addStaticText(L"0", rect<s32>(680, 320, 697, 520), false)->setOverrideColor(graphicColor);
+	guienvFor2D->addStaticText(L"-100", rect<s32>(678, 330, 697, 520), false)->setOverrideColor(graphicColor);
+	guienvFor2D->addStaticText(L"-200", rect<s32>(678, 340, 697, 520), false)->setOverrideColor(graphicColor);
+	guienvFor2D->addStaticText(L"-300", rect<s32>(678, 350, 697, 520), false)->setOverrideColor(graphicColor);
+	guienvFor2D->addStaticText(L"-400", rect<s32>(678, 360, 697, 520), false)->setOverrideColor(graphicColor);
+	guienvFor2D->addStaticText(L"-500", rect<s32>(678, 370, 697, 520), false)->setOverrideColor(graphicColor);
+	guienvFor2D->addStaticText(L"-600", rect<s32>(678, 380, 697, 520), false)->setOverrideColor(graphicColor);
+
+	int x = 700;
+
+	for (int i = 1; i < size; i++) {
+		
+		driverFor2D->draw2DLine(position2di(x - 5, graphicX[i - 1] ), position2di(x, graphicX[i]), graphicColor);
+
+		driverFor2D->draw2DLine(position2di(x - 5, graphicY[i - 1]), position2di(x, graphicY[i]), graphicColor);
+
+		x += 5;
+	}
+
+}

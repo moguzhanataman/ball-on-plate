@@ -57,6 +57,7 @@ bool sendSetpoints(float x, float y);
 /**
  */
 bool readLeds(char **leds);
+
 /**
  */
 bool getCoordinatesAndLeds(int16_t* x, int16_t* y, float* servo_x, float* servo_y, char** leds);
