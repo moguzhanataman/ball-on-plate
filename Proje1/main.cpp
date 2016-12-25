@@ -5,7 +5,7 @@
 #endif
 
 
-#define SERIAL_ON
+//#define SERIAL_ON
 #define VISION
 
 #ifdef _WIN32
@@ -107,11 +107,11 @@ void signal_handler(int sig) {
 }
 void printGraphic(video::IVideoDriver* driverFor2D, gui::IGUIEnvironment* guienvFor2D, double *graphicX, double *graphicY, int size);
 void startMemoryGame() {
-	sendBuf("1", 1);
+	sendBuf((char*)"1", 1);
 }
 
 void startPIDMode() {
-	sendBuf("0", 1);
+	sendBuf((char*)"0", 1);
 }
 
 sig_atomic_t vision_stop = 0;
@@ -605,7 +605,7 @@ int main() {
 		if (startMemoryGameButton->isPressed()) {
 			startMemoryGameButton->setPressed(false);
 			
-			sendBuf("1", 1);
+			sendBuf((char*)"1", 1);
 
 			gameMode = 1;
 			trueNumber = 0;
@@ -647,6 +647,7 @@ int main() {
 			gameStatusText->setText(L"Vision app started");
 			// trueNumberText->setText(L"0");
 			// falseNumberText->setText(L"0");
+			vision_stop = 0;
 			pthread_create(&thread, NULL, vision, NULL);		
 		/*	
 			child = fork();
@@ -664,11 +665,8 @@ int main() {
 		if (endVisionButton->isPressed()) {
 			endVisionButton->setPressed(false);
 			gameStatusText->setText(L"Vision app ended");
-			cv::destroyWindow("in");
-			
 			vision_stop = 1;
-			cv::destroyWindow("in");
-			//pthread_join(thread, NULL);
+		//	pthread_join(thread, NULL); undefined behaviour?
 			
 			//kill(child, SIGUSR1);
 			//pthread_cancel(thread);
@@ -723,8 +721,8 @@ int main() {
 		lastY = y;
 
 		printGraphic(driverFor2D, guienvFor2D, graphicX, graphicY, size);
-		cout << "error -> " << lastX <<  " " << graphicX[size] << " " << 
-				lastY << " " << graphicY[size] << endl;
+		/*cout << "error -> " << lastX <<  " " << graphicX[size] << " " << 
+				lastY << " " << graphicY[size] << endl;*/
 		size++;
 		
 		
@@ -1037,18 +1035,19 @@ void* vision(void* arg){
              ****/
             // show input with augmented information
             
-            if(!vision_stop){
+          //  if(!vision_stop){
 				cv::flip(InImage, mirror, 1);
 				cv::namedWindow("in", 1);
 				cv::imshow("in", mirror);
-			}
+		//	}
             if(char(cv::waitKey(30)) >= 0)
                 break;
-        } while(vreader.grab()); // wait for esc to be pressed
+        } while(!vision_stop && vreader.grab()); // wait for esc to be pressed
 		
-		cv::waitKey(1);
 		cv::destroyWindow("in");
 		cv::waitKey(1);
+		cv::waitKey(1);
+		cv::waitKey(1); //TODO is 3 times enough?
 		vreader.release();
 		InImage.release();
 		mirror.release();
