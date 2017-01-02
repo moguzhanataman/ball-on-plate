@@ -5,7 +5,7 @@
 #endif
 
 
-//#define SERIAL_ON
+#define SERIAL_ON
 #define VISION
 
 #ifdef _WIN32
@@ -27,6 +27,7 @@
 #include <fstream>
 #include <wchar.h>
 #include <ctime>
+#include <cctype>
 #include <math.h>
 #include <string>
 #include <stdlib.h>
@@ -182,10 +183,11 @@ double calculateRotation( double servo_angle, double plateScale ) {
 }
 
 /* ======= Main ======= */
-int main() {
+int main(int argc, char** argv) {
 	std::clock_t start;
 	double duration;
 	pthread_t thread;
+
 
 #ifdef _WIN32
 	
@@ -205,6 +207,12 @@ int main() {
 		std::cerr << "Serial port initialization error\n";
 		exit(1);
 	}
+	
+	//clear buffer
+	
+	for(char buf[1024]; readBuf(buf, 1024);)
+		;
+	
 #endif
 	MouseEventReceiverFor2D mouseReceiver;
 	MouseEventReceiverFor3D receiverForPlate;
@@ -1019,7 +1027,7 @@ void* vision(void* arg){
 						
 						sendSetpoints(x, y);
 						
-						cout << "Child: " << x << " " << y << endl;
+						//cout << "Child: " << x << " " << y << endl;
 					}
 					}
             
