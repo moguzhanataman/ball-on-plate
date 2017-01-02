@@ -209,10 +209,9 @@ int main(int argc, char** argv) {
 	}
 	
 	//clear buffer
-	
-	for(char buf[1024]; readBuf(buf, 1024);)
+	for(unsigned char buf[4096]; RS232_PollComport(COM_PORT, buf, 4096) > 0;)
 		;
-	
+		
 #endif
 	MouseEventReceiverFor2D mouseReceiver;
 	MouseEventReceiverFor3D receiverForPlate;
