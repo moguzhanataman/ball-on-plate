@@ -31,12 +31,14 @@
 #include <math.h>
 #include <string>
 #include <stdlib.h>
+#include "serial/serial.h"
+#include <sys/time.h>
+#ifdef VISION
+#include <queue>
 #include <aruco/aruco.h>
 #include <aruco/cvdrawingutils.h>
 #include <opencv2/highgui/highgui.hpp>
-#include "serial/serial.h"
-#include <sys/time.h>
-#include <queue>
+#endif
 
 using namespace irr;
 using namespace core;
@@ -45,9 +47,11 @@ using namespace video;
 using namespace io;
 using namespace gui;
 using namespace irr;
+using namespace std;
+#ifdef VISION
 using namespace cv;
 using namespace aruco;
-using namespace std;
+#endif
 
 #ifdef _IRR_WINDOWS_
 #pragma comment(lib, "Irrlicht.lib")
@@ -310,10 +314,10 @@ int main(int argc, char** argv) {
 	int falseNumber = 0;
 
 	IGUIButton* startMemoryGameButton = 
-		guienvFor2D->addButton(core::rect<s32>(50, base_y + 40, 150, base_y + 60), 0, -1, L"Start Memory Game");
+		guienvFor2D->addButton(core::rect<s32>(50, base_y + 40, 150, base_y + 80), 0, -1, L"Start Memory Game");
 
 	IGUIButton* endMemoryGameButton = 
-		guienvFor2D->addButton(core::rect<s32>(50, base_y + 60, 150, base_y + 80), 0, -1, L"End Memory Game");
+		guienvFor2D->addButton(core::rect<s32>(50, base_y + 80, 150, base_y + 120), 0, -1, L"End Memory Game");
 
 	bool isGameStarted = false;
 	IGUIStaticText* gameStatusText = 
@@ -324,9 +328,9 @@ int main(int argc, char** argv) {
 	int base_vision_y = 640;
 	
 	IGUIButton* startVisionButton = 
-			guienvFor2D->addButton(core::rect<s32>(base_vision_x, base_vision_y, base_vision_x + 100, base_vision_y + 20), 0, -1, L"Start Vision App");
+			guienvFor2D->addButton(core::rect<s32>(base_vision_x, base_vision_y, base_vision_x + 100, base_vision_y + 40), 0, -1, L"Start Vision App");
 	IGUIButton* endVisionButton = 
-			guienvFor2D->addButton(core::rect<s32>(base_vision_x, base_vision_y + 20, base_vision_x + 100, base_vision_y + 40), 0, -1, L"End Vision App");
+			guienvFor2D->addButton(core::rect<s32>(base_vision_x, base_vision_y + 40, base_vision_x + 100, base_vision_y + 80), 0, -1, L"End Vision App");
 
 
 	// 3D Part

@@ -5,8 +5,8 @@
 #endif
 
 
-#define SERIAL_ON
-#define VISION
+//#define SERIAL_ON
+//#define VISION
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -27,6 +27,7 @@
 #include <fstream>
 #include <wchar.h>
 #include <ctime>
+#include <cctype>
 #include <math.h>
 #include <string>
 #include <stdlib.h>
@@ -107,11 +108,11 @@ void signal_handler(int sig) {
 }
 void printGraphic(video::IVideoDriver* driverFor2D, gui::IGUIEnvironment* guienvFor2D, double *graphicX, double *graphicY, int size);
 void startMemoryGame() {
-	sendBuf("1", 1);
+	sendBuf((char*)"1", 1);
 }
 
 void startPIDMode() {
-	sendBuf("0", 1);
+	sendBuf((char*)"0", 1);
 }
 
 sig_atomic_t vision_stop = 0;
@@ -182,10 +183,11 @@ double calculateRotation( double servo_angle, double plateScale ) {
 }
 
 /* ======= Main ======= */
-int main() {
+int main(int argc, char** argv) {
 	std::clock_t start;
 	double duration;
 	pthread_t thread;
+
 
 #ifdef _WIN32
 	
@@ -205,6 +207,11 @@ int main() {
 		std::cerr << "Serial port initialization error\n";
 		exit(1);
 	}
+	
+	//clear buffer
+	for(unsigned char buf[4096]; RS232_PollComport(COM_PORT, buf, 4096) > 0;)
+		;
+		
 #endif
 	MouseEventReceiverFor2D mouseReceiver;
 	MouseEventReceiverFor3D receiverForPlate;
@@ -303,10 +310,10 @@ int main() {
 	int falseNumber = 0;
 
 	IGUIButton* startMemoryGameButton = 
-		guienvFor2D->addButton(core::rect<s32>(50, base_y + 40, 150, base_y + 60), 0, -1, L"Start Memory Game");
+		guienvFor2D->addButton(core::rect<s32>(50, base_y + 40, 150, base_y + 80), 0, -1, L"Start Memory Game");
 
 	IGUIButton* endMemoryGameButton = 
-		guienvFor2D->addButton(core::rect<s32>(50, base_y + 60, 150, base_y + 80), 0, -1, L"End Memory Game");
+		guienvFor2D->addButton(core::rect<s32>(50, base_y + 80, 150, base_y + 120), 0, -1, L"End Memory Game");
 
 	bool isGameStarted = false;
 	IGUIStaticText* gameStatusText = 
@@ -317,9 +324,9 @@ int main() {
 	int base_vision_y = 640;
 	
 	IGUIButton* startVisionButton = 
-			guienvFor2D->addButton(core::rect<s32>(base_vision_x, base_vision_y, base_vision_x + 100, base_vision_y + 20), 0, -1, L"Start Vision App");
+			guienvFor2D->addButton(core::rect<s32>(base_vision_x, base_vision_y, base_vision_x + 100, base_vision_y + 40), 0, -1, L"Start Vision App");
 	IGUIButton* endVisionButton = 
-			guienvFor2D->addButton(core::rect<s32>(base_vision_x, base_vision_y + 20, base_vision_x + 100, base_vision_y + 40), 0, -1, L"End Vision App");
+			guienvFor2D->addButton(core::rect<s32>(base_vision_x, base_vision_y + 40, base_vision_x + 100, base_vision_y + 80), 0, -1, L"End Vision App");
 
 
 	// 3D Part
@@ -605,7 +612,7 @@ int main() {
 		if (startMemoryGameButton->isPressed()) {
 			startMemoryGameButton->setPressed(false);
 			
-			sendBuf("1", 1);
+			sendBuf((char*)"1", 1);
 
 			gameMode = 1;
 			trueNumber = 0;
@@ -647,6 +654,7 @@ int main() {
 			gameStatusText->setText(L"Vision app started");
 			// trueNumberText->setText(L"0");
 			// falseNumberText->setText(L"0");
+			vision_stop = 0;
 			pthread_create(&thread, NULL, vision, NULL);		
 		/*	
 			child = fork();
@@ -664,11 +672,8 @@ int main() {
 		if (endVisionButton->isPressed()) {
 			endVisionButton->setPressed(false);
 			gameStatusText->setText(L"Vision app ended");
-			cv::destroyWindow("in");
-			
 			vision_stop = 1;
-			cv::destroyWindow("in");
-			//pthread_join(thread, NULL);
+		//	pthread_join(thread, NULL); undefined behaviour?
 			
 			//kill(child, SIGUSR1);
 			//pthread_cancel(thread);
@@ -723,8 +728,8 @@ int main() {
 		lastY = y;
 
 		printGraphic(driverFor2D, guienvFor2D, graphicX, graphicY, size);
-		cout << "error -> " << lastX <<  " " << graphicX[size] << " " << 
-				lastY << " " << graphicY[size] << endl;
+		/*cout << "error -> " << lastX <<  " " << graphicX[size] << " " << 
+				lastY << " " << graphicY[size] << endl;*/
 		size++;
 		
 		
@@ -1021,7 +1026,7 @@ void* vision(void* arg){
 						
 						sendSetpoints(x, y);
 						
-						cout << "Child: " << x << " " << y << endl;
+						//cout << "Child: " << x << " " << y << endl;
 					}
 					}
             
@@ -1037,18 +1042,19 @@ void* vision(void* arg){
              ****/
             // show input with augmented information
             
-            if(!vision_stop){
+          //  if(!vision_stop){
 				cv::flip(InImage, mirror, 1);
 				cv::namedWindow("in", 1);
 				cv::imshow("in", mirror);
-			}
+		//	}
             if(char(cv::waitKey(30)) >= 0)
                 break;
-        } while(vreader.grab()); // wait for esc to be pressed
+        } while(!vision_stop && vreader.grab()); // wait for esc to be pressed
 		
-		cv::waitKey(1);
 		cv::destroyWindow("in");
 		cv::waitKey(1);
+		cv::waitKey(1);
+		cv::waitKey(1); //TODO is 3 times enough?
 		vreader.release();
 		InImage.release();
 		mirror.release();
