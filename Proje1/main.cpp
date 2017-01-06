@@ -5,7 +5,7 @@
 #endif
 
 
-#define SERIAL_ON
+//#define SERIAL_ON
 #define VISION
 
 #ifdef _WIN32
